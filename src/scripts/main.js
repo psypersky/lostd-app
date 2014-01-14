@@ -34,14 +34,9 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 
 		render: function() {
 
-			var list = this.state.data.map(function (x) {  return React.DOM.li({ key: x._id }, 'Friend ', JSON.stringify(x));  });
+			var list = this.state.data.map(function (x) {  return React.DOM.li({ key: x._id }, 'Friend ', JSON.stringify(x)); });
 
-			return (
-				React.DOM.ul(null,
-					list
-				)
-			);
-
+			return React.DOM.ul(null, list);
 		}
 	});
 
@@ -140,20 +135,19 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 		
 		render: function() {
 
-			var text;
+			var button;
 			if (this.state.isAdding)
-				text = 'Cancel';
+				button = React.DOM.input({ type: 'button', onClick: this.toggleState, value: 'Cancel' });
 			else {
-				text = 'Add ';
 				switch (this.state.frameView) {
 					case 'friends':
-						text += 'Friend';
+						button = React.DOM.input({ type: 'button', onClick: this.toggleState, value: 'Add a friend' });
 						break;
 					case 'my_debts':
-						text += 'a debt';
+						button = null;
 						break;
 					case 'owes_me':
-						text += 'owed to me';
+						button = null;
 						break;
 					default:
 						assert(false);
@@ -162,7 +156,14 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 
 			var widget;
 			if (this.state.isAdding) {
-				widget = FriendAdder({ onDone: this.toggleState });
+				switch (this.state.frameView) {
+					case 'friends':
+						widget = FriendAdder({ onDone: this.toggleState });
+						break;
+					default:
+						widget = null;
+				}
+				
 			} else {
 				widget = Frame({ view: this.state.frameView, onStateChanged: this.setViewState });
 			}
@@ -170,7 +171,7 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 			return (
 				React.DOM.div(null,
 					React.DOM.h1(null, 'Lostd App'),
-					React.DOM.input({ type: 'button', onClick: this.toggleState, value: text }),
+					button,
 					widget
 				)
 			);
