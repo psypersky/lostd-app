@@ -4,7 +4,7 @@
        requireLib: "require"
     },
     name: "main",
-    out: "main-built.js",
+    out: "build/main.js",
     include: "requireLib",
     preserveLicenseComments: false
 })

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -v
 rm -rf build
-mkdir build
+cp -r src build
 r.js -o build.js
-node inliner.js
+node updater.js
 

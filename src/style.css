@@ -1,0 +1,11 @@
+body {
+	background-color: lightgray;
+}
+
+#activeFrameHeader {
+	font-weight: bold;
+}
+
+#adder {
+	border: 1px solid black;
+}
