@@ -9,7 +9,11 @@ contents = contents.replace(/\s+/g, ' ');
 var split = contents.split('<script data-main="scripts/main" src="scripts/require.js"></script>');
 assert(split.length === 2);
 
-var total = split[0] + '<script type="text/javascript">' + js + '</script>' + split[1];
+var total = split[0] + '<script type="text/javascript">\n' +
+	'//<![CDATA[\n' +
+	js + '\n' +
+	'//]]>\n' +
+	'</script>' + split[1];
 
 fs.writeFileSync('./build/index.html', total);
 
