@@ -1,4 +1,7 @@
 #!/bin/bash
 set -v
 rm -rf build
-cp -r src build
+mkdir build
+r.js -o build.js
+node inliner.js
+
