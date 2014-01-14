@@ -6,7 +6,7 @@ var contents = fs.readFileSync(__dirname + '/src/index.html', { encoding: 'UTF-8
 
 contents = contents.replace(/\s+/g, ' ');
 
-var split = contents.split('<script src="script/require.js"></script>');
+var split = contents.split('<script data-main="scripts/main" src="scripts/require.js"></script>');
 assert(split.length === 2);
 
 var total = split[0] + '<script type="text/javascript">' + js + '</script>' + split[1];
