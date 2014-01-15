@@ -5,6 +5,7 @@ var fs = require('fs');
 
 
 var enableGzip = true;
+var deploy = true;
 
 function gzip(filename, callback) {
 	if (enableGzip)
@@ -16,6 +17,7 @@ function gzip(filename, callback) {
 
 function execute(command, callback) {
     exec(command, function(err, stdout, stderr){
+    	console.log('exec result (' + command + ') ', err, stdout, stderr);
     	assert(!err);
     	if (stderr) console.error(stderr);
 
@@ -68,3 +70,12 @@ gzip('./build/index.html', function(err) {
 	assert(!err);
 	console.log('Finished index.html...');
 });
+
+if (deploy) {
+	execute('aws s3 cp --content-encoding gzip --content-type "text/javascript; charset=utf-8" --cache-control max-age=31536000 build/' + jsHash + '.js s3://app.lostd.com/' + jsHash + '.js', function() {
+		console.log('Synced javascript...');
+		execute('aws s3 cp --content-encoding gzip --content-type "text/html; charset=utf-8" build/index.html  s3://app.lostd.com/index.html', function() {
+			console.log('Synced index.html.. ');
+		});
+	});
+}
