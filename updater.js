@@ -16,7 +16,6 @@ function gzip(filename, callback) {
 
 function execute(command, callback) {
     exec(command, function(err, stdout, stderr){
-    	console.log('exec result: ', err, stdout, stderr);
     	assert(!err);
     	if (stderr) console.error(stderr);
 
@@ -32,29 +31,15 @@ function hash(filename) {
 	return shasum.digest('hex');
 }
 
-var cssHash = hash('./build/style.css').substring(0, 8);
 var jsHash =  hash('./build/main.js').substring(0, 8);
 
-console.log('Hash of js', cssHash, ' and of js ', jsHash);
-
-
+console.log('Hash of js: ', jsHash);
 
 var contents = fs.readFileSync('./build/index.html', { encoding: 'UTF-8' });
-
-
-// compress css
+var css = fs.readFileSync('./build/style.css');
 
 execute('rm -rf ./build/scripts', function() {
 	console.log('..removed old scripts');
-});
-
-
-gzip('./build/style.css', function(err) {
-	assert(!err);
-
-	execute('mv ./build/style.css ./build/' + cssHash + '.css', function() {
-		console.log('style.css done..');
-	});
 });
 
 gzip('./build/main.js', function(err) {
@@ -65,10 +50,21 @@ gzip('./build/main.js', function(err) {
 	});
 });
 
-var result = contents
-	.replace(/\>\s+\</g, '><')
-	.replace('<link rel="stylesheet" type="text/css" href="style.css" />', '<link rel="stylesheet" type="text/css" href="' + cssHash + '.css" />')
-	.replace('<script data-main="scripts/main" src="scripts/require.js" /></script>', '<script type="text/javascript" src="' + jsHash + '.js" ></script>');
+// simple replace, no escaping bullshit
+function sreplace(str, find, replace) {
+	var arr = str.split(find);
+	assert(arr.length === 2);
+	return arr[0] + replace + arr[1];
+}
 
+contents = contents.replace(/\>\s+\</g, '><');
+contents = sreplace(contents, '<link rel="stylesheet" type="text/css" href="style.css" />', '<style type="text/css">' + css + '</style>');
+contents = sreplace(contents, '<script data-main="scripts/main" src="scripts/require.js" /></script>', '<script type="text/javascript" src="' + jsHash + '.js" ></script>');
+contents = contents.replace(/\s+/g, ' ');
 
-fs.writeFileSync('./build/index.html', result);
+fs.writeFileSync('./build/index.html', contents);
+
+gzip('./build/index.html', function(err) {
+	assert(!err);
+	console.log('Finished index.html...');
+});
