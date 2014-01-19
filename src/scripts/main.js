@@ -9,8 +9,70 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 
 	var db = new PouchDB('lostd');
 
-	var FriendView = React.createClass({
-		displayName: 'FriendView',
+
+	var AccountAdder = React.createClass({
+		displayName: 'AccountAdder',
+
+		propTypes: {
+			onAdded: React.PropTypes.func.isRequired
+		},
+
+		getInitialState: function() {
+			return { isSubmitting: false, errorMsg: null };
+		},
+
+		handleAdd: function() {
+			var self = this;
+			var name = self.refs.accountName.getDOMNode().value.trim();
+			if (!name) {
+				this.setState({ errorMsg: 'No account name added!' });
+				return false;
+			}
+
+			var description = self.refs.description.getDOMNode().value.trim();
+
+			this.setState({ errorMsg: null, isSubmitting: true });
+
+			db.post({
+					type: 'account',
+					name: name,
+					description: description,
+					created: _.now()
+				}, function (err, response) {
+
+					self.setState({ isSubmitting: false });
+					if (err) {
+						self.setState({ errorMsg: 'Encountered by error: ' + err});
+						return;
+					}
+
+					console.log('Added new account: ', name, ' with response ', response);
+					self.props.onAdded(response);
+
+				});
+
+			return false;
+		},
+
+		render: function() {
+
+			return (
+				React.DOM.form({ id: 'adder', onSubmit: this.handleAdd },
+					React.DOM.h2(null, 'Add account'),
+					React.DOM.input({ type: 'text', placeholder: 'Name', ref: 'accountName' }),
+					React.DOM.br(null),
+					React.DOM.textarea({ placeholder: 'Description...', ref: 'description' }),
+					React.DOM.br(null),
+					React.DOM.input({ type: 'submit', value: 'Add account!', ref: 'submitButton' })
+				)
+			);
+		}
+
+	});
+
+
+	var AccountList = React.createClass({
+		displayName: 'AccountList',
 
 		getInitialState: function() {
 			return { data: [] };
@@ -20,7 +82,7 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 			var self = this;
 
 			function map(doc) {
-				if (doc.type === 'friend')
+				if (doc.type === 'account')
 					emit(doc._id, doc);
 			}
 
@@ -34,150 +96,112 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 
 		render: function() {
 
-			var list = this.state.data.map(function (x) {  return React.DOM.li({ key: x._id }, 'Friend ', JSON.stringify(x)); });
+			var list = this.state.data.map(function (x) { return React.DOM.p({ key: x._id},  x); });
 
 			return React.DOM.ul(null, list);
 		}
-	});
-
-
-	var Frame = React.createClass({
-		displayName: 'Frame',
-
-		render: function() {
-			var self = this;
-
-			assert(typeof self.props.view === 'string');
-			assert(typeof self.props.onStateChanged === 'function');
-
-			function mkProperty(v) {
-				return self.props.view === v ? {
-					id: 'activeFrameHeader'
-				} : {
-					onClick: function() {
-						self.props.onStateChanged(v);
-					}
-				};
-			}
-
-			return (
-				React.DOM.div({ id: 'frame' },
-					React.DOM.ul({ id: 'header ' },
-						React.DOM.li(mkProperty('friends'), 'Friends'),
-						React.DOM.li(mkProperty('my_debts'), 'My Debts'),
-						React.DOM.li(mkProperty('owes_me'), 'Owes me')
-					),
-					this.props.view === 'friends' ? FriendView(null) : null
-				)
-			);
-		}
-	});
-
-	var FriendAdder = React.createClass({
-		displayName: 'FriendAdder',
-
-		handleAdd: function() {
-			var self = this;
-			var name = self.refs.friendName.getDOMNode().value.trim();
-			if (!name)
-				return false;
-
-
-
-			// Import to disable it, to stop double-submitting..
-			self.refs.submitButton.getDOMNode().disabled = true;
-
-
-			db.post({
-				type: 'friend',
-				name: name,
-				added: _.now()
-			}, function (err) {
-				if (err)
-					console.error('Unable to add friend: ', name, ' got error: ', err);
-				else
-					self.props.onDone(true);
-			});
-
-			return false;
-		},
-
-		render: function() {
-			return (
-				React.DOM.form({ id: 'adder', onSubmit: this.handleAdd },
-					React.DOM.h2(null, 'Add friend'),
-					React.DOM.input({ type: 'text', placeholder: 'Name', ref: 'friendName' }),
-					React.DOM.br(null),
-					React.DOM.input({ type: 'submit', value: 'Add friend!', ref: 'submitButton' })
-				)
-			);
-		}
-
 	});
 
 	var Window = React.createClass({
 		displayName: 'Window',
 
 		getInitialState: function() {
-			return {
-				isAdding: false,
-				frameView: 'friends'
-			};
+			return { tab: 'accounts', side: 'list' };
 		},
 
-		toggleState: function() {
-			this.setState({ isAdding: !this.state.isAdding });
+		mkProperty: function(tab) {
+			var self = this;
+
+			if (this.state.tab === tab)
+				return { className: 'active' };
+			else 
+				return {
+					onClick: function() {
+						self.setState({ tab: tab });
+					}
+				};
 		},
 
-		setViewState: function(view) {
-			this.setState({ frameView: view });
+		options: function(tab) {
+			switch (tab) {
+				case 'accounts':
+					return {
+						list: 'List All',
+						add: 'Add Account'
+					};
+				case 'pay':
+					return {
+						make: 'Make a payment',
+						add: 'Add a payment',
+					};
+				case 'receive':
+					return {
+						details: 'Details',
+						add: 'Received a payment'
+					};
+			}
 		},
-		
+
+		sidebar: function() {
+
+			var opts = this.options(this.state.tab);
+
+			var self = this;
+
+			var items = Object.keys(opts).map(function (key) {
+
+					var property = { key: key, onClick: function() { self.setState({ side: key }); } };
+
+					if (self.state.side === key)
+						property.className = 'active';
+
+					return React.DOM.li(property, opts[key]);
+				});
+
+			return React.DOM.ul({ id: 'sidebar' }, items);
+		},
+
+		widget: function() {
+			var self = this;
+			switch(this.state.tab) {
+				case 'accounts':
+					switch(this.state.side) {
+						case 'list':
+							return AccountList(null);
+						case 'add':
+							return AccountAdder({ onAdded: function() { self.setState({ side: 'list' });  } });
+					}
+					break;
+			}
+
+			var err = 'Unknown window widget for: ' + this.state.tab + ' and ' + this.state.side;
+			console.log(err);
+			return React.DOM.p(null, err);
+		},
+
 		render: function() {
-
-			var button;
-			if (this.state.isAdding)
-				button = React.DOM.input({ type: 'button', onClick: this.toggleState, value: 'Cancel' });
-			else {
-				switch (this.state.frameView) {
-					case 'friends':
-						button = React.DOM.input({ type: 'button', onClick: this.toggleState, value: 'Add a friend' });
-						break;
-					case 'my_debts':
-						button = null;
-						break;
-					case 'owes_me':
-						button = null;
-						break;
-					default:
-						assert(false);
-				}
-			}
-
-			var widget;
-			if (this.state.isAdding) {
-				switch (this.state.frameView) {
-					case 'friends':
-						widget = FriendAdder({ onDone: this.toggleState });
-						break;
-					default:
-						widget = null;
-				}
-				
-			} else {
-				widget = Frame({ view: this.state.frameView, onStateChanged: this.setViewState });
-			}
+			var self = this;
 
 			return (
-				React.DOM.div(null,
-					React.DOM.h1(null, 'Lostd App'),
-					button,
-					widget
+				React.DOM.div({ id: 'total' },
+					React.DOM.h1(null, 'Lostd App'),		
+					React.DOM.ul({ id: 'tabs' },
+						React.DOM.li(this.mkProperty('accounts'), 'Accounts'),
+						React.DOM.li(this.mkProperty('pay'), 'Pay'),
+						React.DOM.li(this.mkProperty('receive'), 'Receive')
+					),
+					React.DOM.div({id: 'underTab'},
+						this.sidebar(),
+						React.DOM.div({ id: 'page' }, this.widget() ),
+						React.DOM.br({ id: 'clear' })
+					)
 				)
 			);
 		}
-
 	});
+
+
+
 
 	React.renderComponent(
 	  Window(null),
