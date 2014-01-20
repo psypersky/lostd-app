@@ -1,11 +1,12 @@
 body {
-	background-color: #FFBA73;
+	background-color: white;
 	margin: 0;
 	padding: 0;
+	font-family: "Courier New", Courier, monospace;
 }
 
 h1 {
-	color: #A61700;
+	color: black;
 }
 
 li {
@@ -17,11 +18,15 @@ li {
 	margin-top: 20px;
 	margin-bottom: 20px;
 	margin-right: 20px;
-	background-color: #BF7830;
+	background-color: white;
 	float: left;
 }
 
 #tabs li {
+	border: 1px solid black;
+	border-top-left-radius: 15px;
+	border-top-right-radius: 15px;
+	background-color: lightgrey;
 	display: inline;
 	padding: 20px;
 }
@@ -31,11 +36,12 @@ li {
 }
 
 #tabs .active {
-	background-color: #FF8100;
+	color: white;
+	background-color: black;
 }
 
 #underTab {
-	background-color: #FF8100;
+	background-color: black;
 }
 
 #sidebar {
@@ -44,11 +50,15 @@ li {
 }
 
 #sidebar li {
+	color: white;
 	padding: 10px;
 }
 
 #sidebar .active {
-	background-color: #BF7830;
+	border-top-left-radius: 15px;
+	border-bottom-left-radius: 15px;
+	color: black;
+	background-color: white;
 }
 
 #clear {
