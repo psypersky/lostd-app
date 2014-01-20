@@ -2,7 +2,7 @@ body {
 	background-color: white;
 	margin: 0;
 	padding: 0;
-	font-family: "Courier New", Courier, monospace;
+	font-family: "Trebuchet MS", Helvetica, sans-serif;
 }
 
 h1 {
@@ -13,11 +13,25 @@ li {
 	list-style-type: none;
 }
 
+#underTab {
+	background-color: black;
+	padding: 15px;
+}
+
+#whitePage {
+	border-radius: 10px;
+	background-color: white;
+	height: 400px;
+}
+
+#whitePage:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
 #page {
-	padding: 20px;
-	margin-top: 20px;
-	margin-bottom: 20px;
-	margin-right: 20px;
+	padding-left: 20px;
 	background-color: white;
 	float: left;
 }
@@ -28,7 +42,7 @@ li {
 	border-top-right-radius: 15px;
 	background-color: lightgrey;
 	display: inline;
-	padding: 20px;
+    padding: 16px;
 }
 
 .active {
@@ -40,12 +54,11 @@ li {
 	background-color: black;
 }
 
-#underTab {
-	background-color: black;
-}
-
 #sidebar {
-	margin-top: 20px;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	background-color: black;
 	float: left;
 }
 
@@ -61,6 +74,9 @@ li {
 	background-color: white;
 }
 
-#clear {
-	clear: both;
+.account {
+	margin: 20px;
+	padding: 30px;
+	border: 1px solid grey;
+	background-color: lightgrey;
 }

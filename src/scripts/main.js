@@ -6,9 +6,7 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 		if (!b) throw new Error('Assertion Failure!');
 	}
 
-
 	var db = new PouchDB('lostd');
-
 
 	var AccountAdder = React.createClass({
 		displayName: 'AccountAdder',
@@ -70,12 +68,28 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 
 	});
 
+	var Account = React.createClass({
+		displayName: 'Account',
+
+		propTypes: {
+			name: React.PropTypes.string.isRequired,
+			description: React.PropTypes.string
+		},
+
+		render: function() {
+			return React.DOM.div({ className: 'account' },
+				React.DOM.h3(null, this.props.name),
+				React.DOM.p(null, this.props.description)
+			);
+		}
+	})
+
 
 	var AccountList = React.createClass({
 		displayName: 'AccountList',
 
 		getInitialState: function() {
-			return { data: [] };
+			return { data: [], isLoaded: false };
 		},
 
 		componentWillMount: function() {
@@ -87,18 +101,29 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 			}
 
 			db.query({ map: map }, function(err, response) {
+
+				var data = response.rows.map(function(x) { return x.value;  });
+
 				self.setState({
-					data: response.rows.map(function(x) { return x.value;  })
+					data: data,
+					isLoaded: true
 				});
 
 			});
 		},
 
 		render: function() {
+			var self = this;
 
-			var list = this.state.data.map(function (x) { return React.DOM.p({ key: x._id},  x); });
+			if (this.state.isLoaded && this.state.data.length === 0) {
+				return React.DOM.p(null,
+					'You have no accounts! You should add one!'
+				);
+			}
 
-			return React.DOM.ul(null, list);
+			var list = this.state.data.map(function (x) { return Account({ key: x._id, name: x.name, description: x.description }); });
+
+			return React.DOM.div(null, list);
 		}
 	});
 
@@ -106,7 +131,12 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 		displayName: 'Window',
 
 		getInitialState: function() {
-			return { tab: 'accounts', side: 'list' };
+			var tab = 'accounts';
+			return { tab: tab, side: this.defaultSide(tab) };
+		},
+
+		defaultSide: function(tab) {
+			return this.options(tab)[0][0];
 		},
 
 		mkProperty: function(tab) {
@@ -117,7 +147,7 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 			else 
 				return {
 					onClick: function() {
-						self.setState({ tab: tab });
+						self.setState({ tab: tab, side: self.defaultSide(tab) });
 					}
 				};
 		},
@@ -125,20 +155,16 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 		options: function(tab) {
 			switch (tab) {
 				case 'accounts':
-					return {
-						list: 'List All',
-						add: 'Add Account'
-					};
+					return [['name', 'By Name']
+						   ,['add', 'Add Account']];
 				case 'pay':
-					return {
-						make: 'Make a payment',
-						add: 'Add a payment',
-					};
+					return [['make', 'Make a payment']
+						   ,['add', 'Add a payment']];
 				case 'receive':
-					return {
-						details: 'Details',
-						add: 'Received a payment'
-					};
+					return [['details', 'Details']
+						   ,['add', 'Add received payment']];
+				default:
+					assert('Unknown tab: ' + tab);
 			}
 		},
 
@@ -148,14 +174,17 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 
 			var self = this;
 
-			var items = Object.keys(opts).map(function (key) {
+			var items = opts.map(function (kv) {
+					var key = kv[0];
+					var value = kv[1];
 
 					var property = { key: key, onClick: function() { self.setState({ side: key }); } };
 
-					if (self.state.side === key)
+					if (self.state.side === key) {
 						property.className = 'active';
+					}
 
-					return React.DOM.li(property, opts[key]);
+					return React.DOM.li(property, value);
 				});
 
 			return React.DOM.ul({ id: 'sidebar' }, items);
@@ -166,10 +195,10 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 			switch(this.state.tab) {
 				case 'accounts':
 					switch(this.state.side) {
-						case 'list':
+						case 'name':
 							return AccountList(null);
 						case 'add':
-							return AccountAdder({ onAdded: function() { self.setState({ side: 'list' });  } });
+							return AccountAdder({ onAdded: function() { self.setState({ side: 'name' });  } });
 					}
 					break;
 			}
@@ -191,17 +220,15 @@ require(['react', 'pouchdb-nightly', 'lodash'], function(React, PouchDB, _) {
 						React.DOM.li(this.mkProperty('receive'), 'Receive')
 					),
 					React.DOM.div({id: 'underTab'},
-						this.sidebar(),
-						React.DOM.div({ id: 'page' }, this.widget() ),
-						React.DOM.br({ id: 'clear' })
+						React.DOM.div({ id: 'whitePage' },
+							this.sidebar(),
+							React.DOM.div({ id: 'page' }, this.widget() )
+						)
 					)
 				)
 			);
 		}
 	});
-
-
-
 
 	React.renderComponent(
 	  Window(null),
