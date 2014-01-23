@@ -18,9 +18,26 @@ define(['react', 'settings'], function(React, Settings) {
 		render: function() {
 			return React.DOM.form({ onSubmit: this.onSave },
 				React.DOM.h2(null, 'Advanced Settings'),
-				'Federation Server: ', React.DOM.input({ ref: 'federationServer', type: 'text', defaultValue: Settings.getFederationServer() }), React.DOM.br(null),
-				'Database URL: ', React.DOM.input({ ref: 'databaseURL', type: 'text', defaultValue: Settings.getDatabaseURL() }), React.DOM.br(null),
-				React.DOM.input({ type: 'submit', value: 'Save!' }) 
+                React.DOM.table(null,
+                    React.DOM.tr(null,
+                        React.DOM.td(null, 'Federation Server: '),
+                        React.DOM.td(null,
+                            React.DOM.input({ ref: 'federationServer', type: 'text', defaultValue: Settings.getFederationServer() })
+                        )
+                    ),
+                    React.DOM.tr(null,
+                        React.DOM.td(null, 'Database URL: '),
+                        React.DOM.td(null,
+                            React.DOM.input({ ref: 'databaseURL', type: 'text', defaultValue: Settings.getDatabaseURL() })
+                        )
+                    ),
+                    React.DOM.tr(null,
+                        React.DOM.td(''),
+                        React.DOM.td(null,
+                            React.DOM.input({ type: 'submit', value: 'Save!' })
+                        )
+                    )
+                )
 			);
 		}
 	});
