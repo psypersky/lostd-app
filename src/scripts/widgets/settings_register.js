@@ -85,7 +85,14 @@ define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
 			var self = this;
 
 			JsonReq.post(to, { username: username, password: password, email: email }, function(err, response) {
-				self.setState({ error: err ? err.toString() : null, inProgress: false });
+
+                if (err) {
+                    console.error('Got error: ', err);
+                    err = err.toString();
+                }
+
+                if (self.isMounted())
+				    self.setState({ error: err, inProgress: false });
 
 				if (!err) {
 					Settings.setDatabaseURL(response.database_url);

@@ -1,6 +1,7 @@
 'use strict';
 
-define(['react', 'pouchdb-nightly', 'widgets/settings_register', 'widgets/settings_advanced'], function(React, PouchDB, SettingsRegister, SettingsAdvanced) {
+define(['react','pouchdb-nightly', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login'],
+    function(React, PouchDB, SettingsRegister, SettingsAdvanced, SettingsLogin) {
 
 	var db = new PouchDB('lostd');
 
@@ -99,18 +100,7 @@ define(['react', 'pouchdb-nightly', 'widgets/settings_register', 'widgets/settin
 		}
 	});
 
-	var SettingsLogin = React.createClass({
-		displayName: 'SettingsLogin',
 
-		render: function() {
-			return React.DOM.form({ onSubmit: function(){ return false; }},
-				React.DOM.h2(null, 'Login!'),
-				'Username: ', React.DOM.input({ type: 'text', placeholder: 'username' }), React.DOM.br(null),
-				'Password: ', React.DOM.input({ type: 'password', placeholder: 'password' }), React.DOM.br(null),
-				React.DOM.input({ type: 'submit', value: 'Login!' }) 
-			);
-		}
-	});
 
 	var AccountList = React.createClass({
 		displayName: 'AccountList',

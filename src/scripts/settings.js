@@ -11,31 +11,34 @@ define(function() {
 		localStorage = window.localStorage;
 	}
 
+    function getOrElse(field, otherwise) {
+        return function() {
+            var t = localStorage[field];
+            return t ? t : otherwise;
+        }
+    }
+
+    function setOrClear(field) {
+        return function(value) {
+            if (value.length === 0)
+                delete localStorage[field];
+            else
+                localStorage[field] = value;
+        }
+    }
+
 	return {
-		getFederationServer: function() {
-			var t = localStorage['federation_server'];
-			return t ? t : 'http://federation.lostd.com';
-		},
+        getIsLoggedIn: getOrElse('logged_in', false),
 
-		setFederationServer: function(federationServer) {
-			if (federationServer.length === 0)
-				delete localStorage['federation_server'];
-			else
-				localStorage['federation_server'] = federationServer;
-		},
+		getFederationServer: getOrElse('federation_server', 'http://federation.lostd.com'),
 
-		getDatabaseURL: function() {
-			var t = localStorage['database_url'];
-			return t ? t : '';
-		},
+		setFederationServer: setOrClear('federation_server'),
 
-		setDatabaseURL: function(databaseUrl) {
-			console.log('Setting database url to: ', databaseUrl);
-			if (databaseUrl.length === 0)
-				delete localStorage['database_url'];
-			else
-				localStorage['database_url'] = databaseUrl;
-		}
+		getDatabaseURL: getOrElse('database_url', ''),
+
+		setDatabaseURL: setOrClear('database_url')
 	};
+
+
 
 });

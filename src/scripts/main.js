@@ -1,12 +1,10 @@
 'use strict';
 
-require(['react', 'widgets/window', 'lodash'], function(React, Window, PouchDB, _) {
-
+require(['react', 'widgets/window'], function(React, Window) {
 
 	React.renderComponent(
 		Window(null),
 		document.body
 	);
-
 
 });
