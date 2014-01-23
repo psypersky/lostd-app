@@ -1,17 +1,41 @@
+'use strict';
+
 define(function() {
-	var localStorage = window.localStorage ? window.localStorage : {};
+
+	var localStorage;
+
+	if (!window.localStorage) {
+		console.error('Browser does not support local storage. Settings will not persist..');
+		localStorage = {};
+	} else {
+		localStorage = window.localStorage;
+	}
 
 	return {
-		getLoginServer: function() {
-			var r = localStorage['login_server'];
-			return r ? r : 'federation.lostd.com';
+		getFederationServer: function() {
+			var t = localStorage['federation_server'];
+			return t ? t : 'http://federation.lostd.com';
 		},
 
-		setLoginServer: function(loginServer) {
-			if (!loginServer || loginServer.length === 0)
-				delete localStorage['login_server'];
+		setFederationServer: function(federationServer) {
+			if (federationServer.length === 0)
+				delete localStorage['federation_server'];
 			else
-				localStorage['login_server'] = loginServer;
+				localStorage['federation_server'] = federationServer;
+		},
+
+		getDatabaseURL: function() {
+			var t = localStorage['database_url'];
+			return t ? t : '';
+		},
+
+		setDatabaseURL: function(databaseUrl) {
+			console.log('Setting database url to: ', databaseUrl);
+			if (databaseUrl.length === 0)
+				delete localStorage['database_url'];
+			else
+				localStorage['database_url'] = databaseUrl;
 		}
 	};
+
 });

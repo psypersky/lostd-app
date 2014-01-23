@@ -1,6 +1,6 @@
 'use strict';
 
-define(['react', 'pouchdb-nightly', 'settings'], function(React, PouchDB, Settings) {
+define(['react', 'pouchdb-nightly', 'widgets/settings_register', 'widgets/settings_advanced'], function(React, PouchDB, SettingsRegister, SettingsAdvanced) {
 
 	var db = new PouchDB('lostd');
 
@@ -111,34 +111,6 @@ define(['react', 'pouchdb-nightly', 'settings'], function(React, PouchDB, Settin
 			);
 		}
 	});
-
-	var SettingsRegister = React.createClass({
-		displayName: 'SettingsRegister',
-
-		render: function() {
-			return React.DOM.form({ onSubmit: function(){ return false; }},
-				React.DOM.h2(null, 'Register!'),
-				'Username: ', React.DOM.input({ type: 'text', placeholder: 'username' }), React.DOM.br(null),
-				'Password: ', React.DOM.input({ type: 'password', placeholder: 'password' }), React.DOM.br(null),
-				'Confirm Password:', React.DOM.input({ type: 'password', placeholder: 'password' }), React.DOM.br(null),
-				'Email: ', React.DOM.input({ type: 'text', placeholder: 'email' }), React.DOM.br(null),
-				React.DOM.input({ type: 'submit', value: 'Register!' }) 
-			);
-		}
-	});
-
-	var SettingsAdvanced = React.createClass({ 
-		displayName: 'SettingsAdvanced',
-
-		render: function() {
-			return React.DOM.form({ onSubmit: function(){ return false; }},
-				React.DOM.h2(null, 'Advanced Settings'),
-				'Login Server: ', React.DOM.input({ type: 'text', value: Settings.getLoginServer()  }), React.DOM.br(null),
-				'Couch DB Server: ', React.DOM.input({ type: 'text', value: '' }), React.DOM.br(null),
-				React.DOM.input({ type: 'submit', value: 'Save!' }) 
-			);
-		}
-	})
 
 	var AccountList = React.createClass({
 		displayName: 'AccountList',
