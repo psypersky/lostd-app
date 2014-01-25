@@ -5,6 +5,10 @@ define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
     return React.createClass({
         displayName: 'SettingsLogin',
 
+        propTypes: {
+            onLogin: React.PropTypes.func.isRequired
+        },
+
         getInitialState: function() {
             return { error: null, inProgress: false };
         },
@@ -38,7 +42,7 @@ define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
                                 ''
                             ),
                             React.DOM.td(null,
-                                React.DOM.input({ type: 'submit', value: 'Login!' })
+                                React.DOM.input({ disabled: this.state.inProgress, type: 'submit', value: 'Login!' })
                             )
                         )
                     )
@@ -79,12 +83,15 @@ define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
                     err = err.toString();
                 }
 
-                if (self.isMounted())
-                    self.setState({ error: err, inProgress: false });
-
                 if (!err) {
                     console.log('Great success!! Logged in!');
                     Settings.setDatabaseURL(response['database_url']);
+                }
+
+                if (self.isMounted()) {
+                    self.setState({ error: err, inProgress: false });
+
+                    if (!err) self.props.onLogin();
                 }
 
             });

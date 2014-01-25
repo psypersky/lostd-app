@@ -28,13 +28,11 @@ define(function() {
     }
 
 	return {
-        getIsLoggedIn: getOrElse('logged_in', false),
-
 		getFederationServer: getOrElse('federation_server', 'http://federation.lostd.com'),
 
 		setFederationServer: setOrClear('federation_server'),
 
-		getDatabaseURL: getOrElse('database_url', ''),
+		getDatabaseURL: getOrElse('database_url', undefined),
 
 		setDatabaseURL: setOrClear('database_url')
 	};

@@ -13,21 +13,18 @@ li {
 	list-style-type: none;
 }
 
+table {
+    border-spacing: 0;
+}
+
+td {
+    padding: 0;
+    vertical-align: top;
+}
+
 #underTab {
 	background-color: black;
 	padding: 15px;
-}
-
-#whitePage {
-	border-radius: 10px;
-	background-color: white;
-	height: 400px;
-}
-
-#whitePage:after {
-  content: "";
-  display: table;
-  clear: both;
 }
 
 #page {
@@ -54,13 +51,7 @@ li {
 	background-color: black;
 }
 
-#sidebar {
-	height: 100%;
-	padding: 0;
-	margin: 0;
-	background-color: black;
-	float: left;
-}
+
 
 #sidebar li {
 	color: white;

@@ -1,9 +1,7 @@
 'use strict';
 
-define(['react','pouchdb-nightly', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login'],
-    function(React, PouchDB, SettingsRegister, SettingsAdvanced, SettingsLogin) {
-
-	var db = new PouchDB('lostd');
+define(['react','pouchdb-nightly', 'database', 'settings', 'widgets/account_list', 'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login'],
+    function(React, PouchDB, Database, Settings, AccountList, SettingsOverview, SettingsRegister, SettingsAdvanced, SettingsLogin) {
 
 	function assert(b) {
 		if (!b) throw new Error('Assertion Failure!');
@@ -32,12 +30,7 @@ define(['react','pouchdb-nightly', 'widgets/settings_register', 'widgets/setting
 
 			this.setState({ errorMsg: null, isSubmitting: true });
 
-			db.post({
-					type: 'account',
-					name: name,
-					description: description,
-					created: _.now()
-				}, function (err, response) {
+			Database.addAccount(name, description, function (err, response) {
 
 					self.setState({ isSubmitting: false });
 					if (err) {
@@ -69,80 +62,6 @@ define(['react','pouchdb-nightly', 'widgets/settings_register', 'widgets/setting
 
 	});
 
-	var Account = React.createClass({
-		displayName: 'Account',
-
-		propTypes: {
-			name: React.PropTypes.string.isRequired,
-			description: React.PropTypes.string
-		},
-
-		render: function() {
-			return React.DOM.div({ className: 'account' },
-				React.DOM.h3(null, this.props.name),
-				React.DOM.p(null, this.props.description)
-			);
-		}
-	});
-
-	var SettingsOverview = React.createClass({
-		displayName: 'SettingsOverview',		
-
-		render: function() {
-
-			var ls = window.localStorage['last_sync'];
-
-			return React.DOM.p(null,
-				'Logged in: ', (window.localStorage['settings_logged_in'] ? 'yes' : 'no'),
-				React.DOM.br(null),
-				'Last syncd: ',  (ls ? ls : 'never')
-			);
-		}
-	});
-
-
-
-	var AccountList = React.createClass({
-		displayName: 'AccountList',
-
-		getInitialState: function() {
-			return { data: [], isLoaded: false };
-		},
-
-		componentWillMount: function() {
-			var self = this;
-
-			function map(doc) {
-				if (doc.type === 'account')
-					emit(doc._id, doc);
-			}
-
-			db.query({ map: map }, function(err, response) {
-
-				var data = response.rows.map(function(x) { return x.value;  });
-
-				self.setState({
-					data: data,
-					isLoaded: true
-				});
-
-			});
-		},
-
-		render: function() {
-			var self = this;
-
-			if (this.state.isLoaded && this.state.data.length === 0) {
-				return React.DOM.p(null,
-					'You have no accounts! You should add one!'
-				);
-			}
-
-			var list = this.state.data.map(function (x) { return Account({ key: x._id, name: x.name, description: x.description }); });
-
-			return React.DOM.div(null, list);
-		}
-	});
 
 	var Window = React.createClass({
 		displayName: 'Window',
@@ -226,9 +145,11 @@ define(['react','pouchdb-nightly', 'widgets/settings_register', 'widgets/setting
 				case 'settings':
 					switch (this.state.side) {
 						case 'overview':
-							return SettingsOverview(null);
+							return SettingsOverview({ sync: Database.sync });
 						case 'login':
-							return SettingsLogin(null);
+							return SettingsLogin({ onLogin: function() {
+                               self.setState({ side: 'overview' });
+                            }});
 						case 'register':
 							return SettingsRegister(null);
 						case 'advanced':
@@ -243,10 +164,8 @@ define(['react','pouchdb-nightly', 'widgets/settings_register', 'widgets/setting
 		},
 
 		render: function() {
-			var self = this;
-
 			return (
-				React.DOM.div({ id: 'total' },
+				React.DOM.div(null,
 					React.DOM.h1(null, 'Lostd App'),		
 					React.DOM.ul({ id: 'tabs' },
 						React.DOM.li(this.mkProperty('accounts'), 'Accounts'),
@@ -254,10 +173,14 @@ define(['react','pouchdb-nightly', 'widgets/settings_register', 'widgets/setting
 						React.DOM.li(this.mkProperty('receive'), 'Receive'),
 						React.DOM.li(this.mkProperty('settings'), 'Settings')
 					),
-					React.DOM.div({id: 'underTab'},
-						React.DOM.div({ id: 'whitePage' },
-							this.sidebar(),
-							React.DOM.div({ id: 'page' }, this.widget() )
+					React.DOM.table({id: 'underTab'},
+                        React.DOM.tr(null,
+                            React.DOM.td(null,
+							    this.sidebar()
+                            ),
+							React.DOM.td({ id: 'page' },
+                                this.widget()
+                            )
 						)
 					)
 				)
