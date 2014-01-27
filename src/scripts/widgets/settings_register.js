@@ -18,23 +18,23 @@ define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
 					React.DOM.table(null,
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Username:'),
-							React.DOM.td(null, React.DOM.input({ ref: 'username', type: 'text', placeholder: 'username', defaultValue: 'test' }))
+							React.DOM.td(null, React.DOM.input({ ref: 'username', type: 'text', placeholder: 'username' }))
 						),
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Password:'),
-							React.DOM.td(null, React.DOM.input({ ref: 'password', type: 'password', placeholder: 'password', defaultValue: 'test' }))
+							React.DOM.td(null, React.DOM.input({ ref: 'password', type: 'password', placeholder: 'password' }))
 						),
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Confirm Password:'),
-							React.DOM.td(null, React.DOM.input({ ref: 'confirm', type: 'password', placeholder: 'password', defaultValue: 'test' }))
+							React.DOM.td(null, React.DOM.input({ ref: 'confirm', type: 'password', placeholder: 'password' }))
 						),
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Email:'),
-							React.DOM.td(null, React.DOM.input({ ref: 'email', type: 'text', placeholder: 'email', defaultValue: 'test@test.com' }))
+							React.DOM.td(null, React.DOM.input({ ref: 'email', type: 'text', placeholder: 'email' }))
 						),
 						React.DOM.tr(null,
 								React.DOM.td(null, ''),
-							React.DOM.td(null, React.DOM.input({ disabled: this.state.inProgress, type: 'submit', defaultValue: 'Register!' }))
+							React.DOM.td(null, React.DOM.input({ disabled: this.state.inProgress, type: 'submit', value: 'Register!' }))
 						)
 					)
 				)

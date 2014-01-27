@@ -1,69 +1,19 @@
 'use strict';
 
-define(['react','pouchdb-nightly', 'database', 'settings', 'widgets/account_list', 'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login'],
-    function(React, PouchDB, Database, Settings, AccountList, SettingsOverview, SettingsRegister, SettingsAdvanced, SettingsLogin) {
+define(['react','pouchdb-nightly'
+    ,'database', 'settings'
+    , 'widgets/account_list', 'widgets/account_adder'
+    , 'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login'],
+    function(React, PouchDB
+        , Database, Settings
+        , AccountList, AccountAdder
+        , SettingsOverview, SettingsRegister, SettingsAdvanced, SettingsLogin) {
 
 	function assert(b) {
 		if (!b) throw new Error('Assertion Failure!');
 	}
 
-	var AccountAdder = React.createClass({
-		displayName: 'AccountAdder',
-
-		propTypes: {
-			onAdded: React.PropTypes.func.isRequired
-		},
-
-		getInitialState: function() {
-			return { isSubmitting: false, errorMsg: null };
-		},
-
-		handleAdd: function() {
-			var self = this;
-			var name = self.refs.accountName.getDOMNode().value.trim();
-			if (!name) {
-				this.setState({ errorMsg: 'No account name added!' });
-				return false;
-			}
-
-			var description = self.refs.description.getDOMNode().value.trim();
-
-			this.setState({ errorMsg: null, isSubmitting: true });
-
-			Database.addAccount(name, description, function (err, response) {
-
-					self.setState({ isSubmitting: false });
-					if (err) {
-						self.setState({ errorMsg: 'Encountered by error: ' + err});
-						return;
-					}
-
-					console.log('Added new account: ', name, ' with response ', response);
-					self.props.onAdded(response);
-
-				});
-
-			return false;
-		},
-
-		render: function() {
-
-			return (
-				React.DOM.form({ id: 'adder', onSubmit: this.handleAdd },
-					React.DOM.h2(null, 'Add account'),
-					React.DOM.input({ type: 'text', placeholder: 'Name', ref: 'accountName' }),
-					React.DOM.br(null),
-					React.DOM.textarea({ placeholder: 'Description...', ref: 'description' }),
-					React.DOM.br(null),
-					React.DOM.input({ type: 'submit', value: 'Add account!', ref: 'submitButton' })
-				)
-			);
-		}
-
-	});
-
-
-	var Window = React.createClass({
+	return React.createClass({
 		displayName: 'Window',
 
 		getInitialState: function() {
@@ -83,7 +33,7 @@ define(['react','pouchdb-nightly', 'database', 'settings', 'widgets/account_list
 			else 
 				return {
 					onClick: function() {
-						self.setState({ tab: tab, side: self.defaultSide(tab) });
+                        self.setState({ tab: tab, side: self.defaultSide(tab) });
 					}
 				};
 		},
@@ -139,7 +89,7 @@ define(['react','pouchdb-nightly', 'database', 'settings', 'widgets/account_list
 						case 'name':
 							return AccountList(null);
 						case 'add':
-							return AccountAdder({ onAdded: function() { self.setState({ side: 'name' });  } });
+							return AccountAdder(null);
 					}
 					break;
 				case 'settings':
@@ -148,7 +98,7 @@ define(['react','pouchdb-nightly', 'database', 'settings', 'widgets/account_list
 							return SettingsOverview({ sync: Database.sync });
 						case 'login':
 							return SettingsLogin({ onLogin: function() {
-                               self.setState({ side: 'overview' });
+                                console.log('Succesfully logged in!');
                             }});
 						case 'register':
 							return SettingsRegister(null);
@@ -187,6 +137,4 @@ define(['react','pouchdb-nightly', 'database', 'settings', 'widgets/account_list
 			);
 		}
 	});
-
-	return Window;
 });
