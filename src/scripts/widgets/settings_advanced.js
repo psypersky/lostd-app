@@ -1,16 +1,28 @@
 'use strict';
 
-define(['react', 'settings'], function(React, Settings) {
+define(['database', 'react', 'settings'], function(Database, React, Settings) {
 
 	return React.createClass({ 
 		displayName: 'SettingsAdvanced',
 
 		onSave: function() {
 			var federationServer = this.refs.federationServer.getDOMNode().value.trim();
-			Settings.setFederationServer(federationServer);
+            if (federationServer.length === 0)
+                Settings.setFederationServer(undefined);
+            else
+			    Settings.setFederationServer(federationServer);
 			
-			var databaseURL = this.refs.databaseURL.getDOMNode().value.trim();
-			Settings.setDatabaseURL(databaseURL);
+			var databaseURL = this.refs['databaseURL'].getDOMNode().value.trim();
+            if (databaseURL.length === 0)
+                databaseURL = undefined;
+
+            if (databaseURL !== Settings.getDatabaseURL()) {
+                Settings.setDatabaseURL(databaseURL);
+                Database.restartReplication();
+                Settings.setLastExport(undefined);
+                Settings.setLastImport(undefined);
+            }
+
 
 			return false;
 		},

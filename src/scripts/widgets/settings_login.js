@@ -1,19 +1,19 @@
 'use strict';
 
-define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
+define(['database', 'react', 'settings', 'json_req'], function(Database, React, Settings, JsonReq) {
 
     return React.createClass({
         displayName: 'SettingsLogin',
 
-        propTypes: {
-            onLogin: React.PropTypes.func.isRequired
-        },
 
         getInitialState: function() {
-            return { error: null, inProgress: false };
+            return { error: null, inProgress: false, done: false };
         },
 
         render: function() {
+
+            if (this.state.done)
+                return React.DOM.p(null, 'Successfully Logged In!');
 
             var err = this.state.error ? React.DOM.p(null, this.state.error) : null;
 
@@ -85,13 +85,21 @@ define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
 
                 if (!err) {
                     console.log('Great success!! Logged in!');
-                    Settings.setDatabaseURL(response['database_url']);
+                    var databaseURL = response['database_url'];
+
+                    if (!databaseURL || databaseURL !== Settings.getDatabaseURL()) {
+                        Settings.setDatabaseURL(databaseURL);
+                        Database.restartReplication();
+                        Settings.setLastExport(undefined);
+                        Settings.setLastImport(undefined);
+                    }
                 }
 
                 if (self.isMounted()) {
-                    self.setState({ error: err, inProgress: false });
-
-                    if (!err) self.props.onLogin();
+                    if (err)
+                        self.setState({ error: 'Error: ' + err, inProgress: false });
+                    else
+                        self.setState({ inProgress: false, done: true});
                 }
 
             });

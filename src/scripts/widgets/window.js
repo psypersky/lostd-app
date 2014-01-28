@@ -95,7 +95,7 @@ define(['react','pouchdb-nightly'
 				case 'settings':
 					switch (this.state.side) {
 						case 'overview':
-							return SettingsOverview({ sync: Database.sync });
+							return SettingsOverview();
 						case 'login':
 							return SettingsLogin({ onLogin: function() {
                                 console.log('Succesfully logged in!');
