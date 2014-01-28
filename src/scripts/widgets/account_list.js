@@ -27,7 +27,7 @@ define(['react', 'database', 'widgets/account'], function(React, Database, Accou
                 for (var x in this.state.data) {
                     copy[x] = this.state.data[x];
                 }
-                copy[x] = change.doc;
+                copy[change.id] = change.doc;
                 return this.setState({ data: copy });
             }
 
