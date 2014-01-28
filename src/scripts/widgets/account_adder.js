@@ -49,7 +49,7 @@ define(['react', 'database'], function(React, Database) {
                 React.DOM.form({ id: 'adder', onSubmit: this.handleAdd },
                     React.DOM.h2(null, 'Add account'),
                     (this.state.msg ? React.DOM.p(null, this.state.msg) : null),
-                    React.DOM.input({ type: 'text', placeholder: 'Name', ref: 'accountName' }),
+                    React.DOM.input({ type: 'text', placeholder: 'Name', ref: 'accountName', required: true }),
                     React.DOM.br(null),
                     React.DOM.textarea({ placeholder: 'Description...', ref: 'description' }),
                     React.DOM.br(null),

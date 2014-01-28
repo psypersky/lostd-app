@@ -18,19 +18,19 @@ define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
 					React.DOM.table(null,
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Username:'),
-							React.DOM.td(null, React.DOM.input({ ref: 'username', type: 'text', placeholder: 'username' }))
+							React.DOM.td(null, React.DOM.input({ ref: 'username', type: 'text', placeholder: 'username', required: true }))
 						),
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Password:'),
-							React.DOM.td(null, React.DOM.input({ ref: 'password', type: 'password', placeholder: 'password' }))
+							React.DOM.td(null, React.DOM.input({ ref: 'password', type: 'password', placeholder: 'password', required: true }))
 						),
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Confirm Password:'),
-							React.DOM.td(null, React.DOM.input({ ref: 'confirm', type: 'password', placeholder: 'password' }))
+							React.DOM.td(null, React.DOM.input({ ref: 'confirm', type: 'password', placeholder: 'password', required: true }))
 						),
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Email:'),
-							React.DOM.td(null, React.DOM.input({ ref: 'email', type: 'text', placeholder: 'email' }))
+							React.DOM.td(null, React.DOM.input({ ref: 'email', type: 'email', placeholder: 'email', required: true }))
 						),
 						React.DOM.tr(null,
 								React.DOM.td(null, ''),
