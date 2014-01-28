@@ -16,7 +16,7 @@ define(function() {
 		}).join('&');
 
 		var req = new XMLHttpRequest();
-		req.responseType = 'json';
+
 
 		req.onerror = function(err) {
 			console.error('Request to ', to, ' got error ', this);
@@ -33,6 +33,7 @@ define(function() {
 
 		console.log('Sending request to: ', to);
 		req.open('POST', to);
+        req.responseType = 'json';
 		req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 		req.setRequestHeader('Accept', 'application/json');
 		req.send(params);
