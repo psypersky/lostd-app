@@ -1,72 +1,67 @@
+* {
+    padding: 0;
+    margin: 0;
+}
+
 body {
-	background-color: white;
-	margin: 0;
-	padding: 0;
 	font-family: "Trebuchet MS", Helvetica, sans-serif;
-}
-
-h1 {
-	color: black;
-}
-
-li {
-	list-style-type: none;
 }
 
 table {
     border-spacing: 0;
 }
 
-td {
-    padding: 0;
-    vertical-align: top;
+hr {
+    height: 10px;
+    background-color: black;
+    border: none;
 }
 
-#underTab {
-	background-color: black;
-	padding: 15px;
-}
-
-#page {
-	padding-left: 20px;
-	background-color: white;
-	float: left;
+h1, h2 {
+    margin-top: 5px;
+    margin-bottom: 10px;
 }
 
 #tabs li {
-	border: 1px solid black;
-	border-top-left-radius: 15px;
-	border-top-right-radius: 15px;
-	background-color: lightgrey;
-	display: inline;
+    border: 1px solid black;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    background-color: lightgrey;
+    display: inline-block;
     padding: 16px;
 }
 
-.active {
-	font-weight: bold;
+#tabs .active {
+    color: white;
+    background-color: black;
 }
 
-#tabs .active {
-	color: white;
-	background-color: black;
+#sidebar {
+    vertical-align: top;
+    background-color: black;
+    width: 9em;
+    box-shadow: -2000px 2000px 0px 2000px #000
+}
+
+#sidebar ul {
+    padding-left: 0;
 }
 
 #sidebar li {
-	color: white;
-	padding: 10px;
+    color: white;
+    padding: 10px;
 }
 
 #sidebar .active {
-	border-top-left-radius: 15px;
-	border-bottom-left-radius: 15px;
-	color: black;
-	background-color: white;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    color: black;
+    background-color: white;
 }
 
-.account {
-	margin: 20px;
-	border: 1px solid grey;
-	background-color: lightgrey;
+#page {
+    vertical-align: top;
+    padding-left: 20px;
 }
 
 .errorText {

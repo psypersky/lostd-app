@@ -1,18 +1,17 @@
 'use strict';
 
-define(['react', 'database', 'widgets/account_list_mixin'], function(React, Database, AccountListMixin) {
+define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database, DbListMixin) {
 
     return React.createClass({
         displayName: 'AmountAdder',
 
-        mixins: [AccountListMixin],
+        mixins: [DbListMixin('account')],
 
         getInitialState: function() {
-            return { accountList: {}, accountListLoaded: false, selectedAccount: null,  done: false, isSubmitting: false, error: null };
+            return { dbList: {}, dbListLoaded: false, selectedAccount: null,  done: false, isSubmitting: false, error: null };
         },
 
         onAccountChange: function() {
-            console.log('Handling change ... ');
 
             var selected = this.refs['accountDropDown'].getDOMNode();
             var accountId = selected.options[selected.selectedIndex].value;
@@ -28,7 +27,7 @@ define(['react', 'database', 'widgets/account_list_mixin'], function(React, Data
         handleAdd: function() {
 
             if (!this.state.selectedAccount) {
-                this.setState( { isSubmitting: false, error: 'No account has been selected '});
+                this.setState( { isSubmitting: false, error: 'No account has been selected' });
                 return false;
             }
 
@@ -65,8 +64,8 @@ define(['react', 'database', 'widgets/account_list_mixin'], function(React, Data
 
         dropDown: function() {
             var self = this;
-            var list = Object.keys(self.state.accountList).map(function (k) {
-                var value = self.state.accountList[k];
+            var list = Object.keys(self.state.dbList).map(function (k) {
+                var value = self.state.dbList[k];
 
                 return React.DOM.option({ key: k, value: k }, value.name);
             });
@@ -83,7 +82,7 @@ define(['react', 'database', 'widgets/account_list_mixin'], function(React, Data
 
             var selectedName;
             if (this.state.selectedAccount) {
-                var account = this.state.accountList[this.state.selectedAccount];
+                var account = this.state.dbList[this.state.selectedAccount];
                 console.log('account: ', account);
                 selectedName = account ? account.name : '...';
             } else {

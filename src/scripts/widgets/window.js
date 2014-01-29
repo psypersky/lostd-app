@@ -1,14 +1,14 @@
 'use strict';
 
-define(['react','pouchdb-nightly'
-    ,'database', 'settings'
-    , 'widgets/account_list', 'widgets/account_adder'
-    , 'widgets/debt_adder'
-    , 'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login'],
+define(['react','pouchdb-nightly',
+    'database', 'settings',
+    'widgets/account_list', 'widgets/account_adder',
+    'widgets/debt_adder', 'widgets/debt_list',
+    'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login'],
     function(React, PouchDB
         , Database, Settings
         , AccountList, AccountAdder
-        , DebtAdder
+        , DebtAdder, DebtList
         , SettingsOverview, SettingsRegister, SettingsAdvanced, SettingsLogin) {
 
 	function assert(b) {
@@ -47,9 +47,7 @@ define(['react','pouchdb-nightly'
 						   ,['add', 'Add Account']];
 				case 'debt':
 					return [['add', 'Add']
-						   ,['list', 'List']
-                           ,['make', 'Make'
-                           ]];
+						   ,['list', 'List']];
 				case 'payment':
 					return [['add', 'Add']
 						   ,['details', 'Details']];
@@ -82,7 +80,7 @@ define(['react','pouchdb-nightly'
 					return React.DOM.li(property, value);
 				});
 
-			return React.DOM.ul({ id: 'sidebar' }, items);
+			return React.DOM.ul(null, items);
 		},
 
 		widget: function() {
@@ -100,6 +98,8 @@ define(['react','pouchdb-nightly'
                     switch (this.state.side) {
                         case 'add':
                             return DebtAdder(null);
+                        case 'list':
+                            return DebtList(null);
                     }
                 case 'payment':
                     switch (this.state.side) {
@@ -110,11 +110,9 @@ define(['react','pouchdb-nightly'
 				case 'settings':
 					switch (this.state.side) {
 						case 'overview':
-							return SettingsOverview();
+							return SettingsOverview(null);
 						case 'login':
-							return SettingsLogin({ onLogin: function() {
-                                console.log('Succesfully logged in!');
-                            }});
+							return SettingsLogin(null);
 						case 'register':
 							return SettingsRegister(null);
 						case 'advanced':
@@ -138,9 +136,10 @@ define(['react','pouchdb-nightly'
 						React.DOM.li(this.mkProperty('payment'), 'Payment'),
 						React.DOM.li(this.mkProperty('settings'), 'Settings')
 					),
-					React.DOM.table({id: 'underTab'},
+                    React.DOM.hr(null),
+					React.DOM.table(null,
                         React.DOM.tr(null,
-                            React.DOM.td(null,
+                            React.DOM.td({ id: 'sidebar' },
 							    this.sidebar()
                             ),
 							React.DOM.td({ id: 'page' },
