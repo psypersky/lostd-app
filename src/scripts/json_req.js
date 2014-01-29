@@ -18,7 +18,7 @@ define(function() {
 		var req = new XMLHttpRequest();
 
 
-		req.onerror = function(err) {
+		req.onerror = function() {
 			console.error('Request to ', to, ' got error ', this);
 			return callback(new Error('Unable to make request'));
 		};

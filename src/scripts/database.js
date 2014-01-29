@@ -114,6 +114,22 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
                 callback);
         },
 
+        addDebt: function(account, direction, amount, currency, description, callback) {
+            db.post(
+                {
+                    type: 'debt',
+                    account: account,
+                    direction: direction,
+                    amount: amount,
+                    currency: currency,
+                    description: description,
+                    created: new Date()
+                },
+                callback()
+            )
+
+        },
+
         remove: db.remove.bind(db),
 
         query: function(mapFunction, callback) {

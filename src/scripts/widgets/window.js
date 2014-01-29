@@ -3,10 +3,12 @@
 define(['react','pouchdb-nightly'
     ,'database', 'settings'
     , 'widgets/account_list', 'widgets/account_adder'
+    , 'widgets/debt_adder'
     , 'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login'],
     function(React, PouchDB
         , Database, Settings
         , AccountList, AccountAdder
+        , DebtAdder
         , SettingsOverview, SettingsRegister, SettingsAdvanced, SettingsLogin) {
 
 	function assert(b) {
@@ -43,12 +45,14 @@ define(['react','pouchdb-nightly'
 				case 'accounts':
 					return [['name', 'By Name']
 						   ,['add', 'Add Account']];
-				case 'pay':
-					return [['make', 'Make a payment']
-						   ,['add', 'Add a payment']];
-				case 'receive':
-					return [['details', 'Details']
-						   ,['add', 'Add received payment']];
+				case 'debt':
+					return [['add', 'Add']
+						   ,['list', 'List']
+                           ,['make', 'Make'
+                           ]];
+				case 'payment':
+					return [['add', 'Add']
+						   ,['details', 'Details']];
 				case 'settings':
 					return [['overview', 'Overview']
 						   ,['login', 'Login']
@@ -92,6 +96,17 @@ define(['react','pouchdb-nightly'
 							return AccountAdder(null);
 					}
 					break;
+                case 'debt':
+                    switch (this.state.side) {
+                        case 'add':
+                            return DebtAdder(null);
+                    }
+                case 'payment':
+                    switch (this.state.side) {
+                        case 'add':
+                            // ...
+                    }
+                    break;
 				case 'settings':
 					switch (this.state.side) {
 						case 'overview':
@@ -119,8 +134,8 @@ define(['react','pouchdb-nightly'
 					React.DOM.h1(null, 'Lostd App'),		
 					React.DOM.ul({ id: 'tabs' },
 						React.DOM.li(this.mkProperty('accounts'), 'Accounts'),
-						React.DOM.li(this.mkProperty('pay'), 'Pay'),
-						React.DOM.li(this.mkProperty('receive'), 'Receive'),
+						React.DOM.li(this.mkProperty('debt'), 'Debt'),
+						React.DOM.li(this.mkProperty('payment'), 'Payment'),
 						React.DOM.li(this.mkProperty('settings'), 'Settings')
 					),
 					React.DOM.table({id: 'underTab'},

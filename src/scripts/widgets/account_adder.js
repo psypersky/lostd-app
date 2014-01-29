@@ -22,16 +22,10 @@ define(['react', 'database'], function(React, Database) {
             this.setState({ error: null, isSubmitting: true });
 
             Database.addAccount(name, description, function (err, response) {
-
-                if (err) {
-                    console.error('Encounted error when adding: ' + err);
-                    return;
-                }
-
                 if (!self.isMounted()) return;
 
                 if (err) {
-                    self.setState({ error: 'Encounted error: ' + err});
+                    self.setState({ isSubmitting: false, error: 'Encounted error: ' + err.toString()});
                 } else {
                     console.log('Added new account: ', name, ' with response ', response);
                     self.setState({ isSubmitting: false, done: true });
@@ -48,7 +42,7 @@ define(['react', 'database'], function(React, Database) {
             return (
                 React.DOM.form({ id: 'adder', onSubmit: this.handleAdd },
                     React.DOM.h2(null, 'Add account'),
-                    (this.state.msg ? React.DOM.p(null, this.state.msg) : null),
+                    (this.state.error ? React.DOM.p({ className: 'errorText' }, this.state.error) : null),
                     React.DOM.input({ type: 'text', placeholder: 'Name', ref: 'accountName', required: true }),
                     React.DOM.br(null),
                     React.DOM.textarea({ placeholder: 'Description...', ref: 'description' }),
