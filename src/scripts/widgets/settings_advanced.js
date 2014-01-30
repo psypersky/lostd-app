@@ -2,7 +2,7 @@
 
 define(['database', 'react', 'settings'], function(Database, React, Settings) {
 
-	return React.createClass({ 
+	return React.createClass({
 		displayName: 'SettingsAdvanced',
 
 		onSave: function() {
@@ -27,6 +27,7 @@ define(['database', 'react', 'settings'], function(Database, React, Settings) {
 			return false;
 		},
 
+
 		render: function() {
 			return React.DOM.form({ onSubmit: this.onSave },
 				React.DOM.h2(null, 'Advanced Settings'),
@@ -49,9 +50,17 @@ define(['database', 'react', 'settings'], function(Database, React, Settings) {
                             React.DOM.input({ type: 'submit', value: 'Save!' })
                         )
                     )
-                )
+                ),
+                React.DOM.hr(null),
+                React.DOM.input({ type: 'button', value: 'Clear all local data!', onClick: this.clear })
 			);
-		}
+		},
+
+        clear: function() {
+            Database.destroy(function(err) {
+               console.log('Database destroyed!! ', err);
+            });
+        }
 	});
 
 });
