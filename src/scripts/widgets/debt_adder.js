@@ -8,7 +8,7 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
         mixins: [DbListMixin('account')],
 
         getInitialState: function() {
-            return { dbList: {}, dbListLoaded: false, selectedAccount: null,  done: false, isSubmitting: false, error: null };
+            return { selectedAccount: null,  done: false, isSubmitting: false, error: null };
         },
 
         onAccountChange: function() {
