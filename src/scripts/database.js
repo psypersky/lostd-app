@@ -10,24 +10,22 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
         var cancel = false;
 
         var dbUrl = Settings.getDatabaseURL();
-        if (dbUrl) {
-            console.log('Replication to ', dbUrl, ' has begun');
+        if (!dbUrl) return;
 
-            var importPromise = continuousImport();
-            var exportPromise = continuousExport();
+        console.log('Replication to ', dbUrl, ' has begun');
 
+        var importPromise = continuousImport();
+        var exportPromise = continuousExport();
 
-            return {
-                cancel: function() {
-                    console.log('Canceling Replication..');
-                    cancel = true;
-                    importPromise.cancel();
-                    exportPromise.cancel();
-                }
-            };
-        } else {
-            return { cancel: function(){ cancel = true } };
-        }
+        return {
+            cancel: function() {
+                console.log('Canceling Replication..');
+                cancel = true;
+                importPromise.cancel();
+                exportPromise.cancel();
+            }
+        };
+
 
         function continuousImport() {
             if (cancel) return;
@@ -57,13 +55,25 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
     return {
 
         cancel: function() {
-            promise.cancel();
+            if (promise) {
+                promise.cancel();
+                promise = null;
+            }
         },
 
         restartReplication: function() {
             console.log('Restarting replication..');
-            promise.cancel();
+            if (promise) promise.cancel();
             promise = continuousReplication();
+        },
+
+        destroy: function(callback) {
+            if (promise) promise.cancel();
+            PouchDb.destroy('lostd', function(err, response) {
+                console.log('Result of destroy... ', err, response);
+                db = new PouchDb('lostd');
+                callback(err);
+            });
         },
 
         onChange: function(f) {
