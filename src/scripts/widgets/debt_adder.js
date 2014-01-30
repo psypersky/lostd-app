@@ -5,29 +5,28 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
     return React.createClass({
         displayName: 'AmountAdder',
 
-        mixins: [DbListMixin('account')],
+        mixins: [DbListMixin('tab')],
 
         getInitialState: function() {
-            return { selectedAccount: null,  done: false, isSubmitting: false, error: null };
+            return { selectedTab: null,  done: false, isSubmitting: false, error: null };
         },
 
-        onAccountChange: function() {
+        onTabChange: function() {
 
-            var selected = this.refs['accountDropDown'].getDOMNode();
-            var accountId = selected.options[selected.selectedIndex].value;
+            var selected = this.refs['tabDropDown'].getDOMNode();
+            var tabId = selected.options[selected.selectedIndex].value;
 
-            if (accountId === 'NA')
-                accountId = null;
+            if (tabId === 'NA')
+                tabId = null;
 
-            this.setState({ selectedAccount: accountId });
+            this.setState({ selectedTab: tabId });
 
-            //var accountName =
         },
 
         handleAdd: function() {
 
-            if (!this.state.selectedAccount) {
-                this.setState( { isSubmitting: false, error: 'No account has been selected' });
+            if (!this.state['selectedTab']) {
+                this.setState( { isSubmitting: false, error: 'No tab has been selected' });
                 return false;
             }
 
@@ -39,7 +38,7 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
                 this.setState( { isSubmitting: false, error: 'No direction has been selected '});
                 return false;
             }
-            var account = this.state.selectedAccount;
+            var tab = this.state['selectedTab'];
             var direction = out ? 'outgoing' : 'incoming';
             var amount = parseFloat(this.refs['amount'].getDOMNode().value);
             var currency = this.refs['currency'].getDOMNode().value;
@@ -49,7 +48,7 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
             this.setState({ isSubmitting: true, error: null });
 
             var self = this;
-            Database.addDebt(this.state.selectedAccount, direction, amount, currency, description, function(err, response) {
+            Database.addDebt(this.state['selectedTab'], direction, amount, currency, description, function(err, response) {
                 if (!self.isMounted()) return;
 
                 if (err) {
@@ -70,9 +69,9 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
                 return React.DOM.option({ key: k, value: k }, value.name);
             });
 
-            list.unshift(React.DOM.option({ key: 'NA', value: 'NA' }, '-Please Select an Account-'));
+            list.unshift(React.DOM.option({ key: 'NA', value: 'NA' }, '-Please Select a Tab-'));
 
-            return React.DOM.select({ ref: 'accountDropDown', onChange: this.onAccountChange, required: true }, list);
+            return React.DOM.select({ ref: 'tabDropDown', onChange: this.onTabChange, required: true }, list);
         },
 
         render: function() {
@@ -81,10 +80,9 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
                 return React.DOM.p(null, 'Debt Added!');
 
             var selectedName;
-            if (this.state.selectedAccount) {
-                var account = this.state.dbList[this.state.selectedAccount];
-                console.log('account: ', account);
-                selectedName = account ? account.name : '...';
+            if (this.state['selectedTab']) {
+                var tab = this.state.dbList[this.state.selectedTab];
+                selectedName = tab ? tab.name : '...';
             } else {
                 selectedName = '...';
             }
@@ -95,7 +93,7 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
                     (this.state.error ? React.DOM.p({ className: 'errorText' }, this.state.error) : null),
                     React.DOM.table(null,
                         React.DOM.tr(null,
-                            React.DOM.td(null, 'Account:'),
+                            React.DOM.td(null, 'Tab:'),
                             React.DOM.td(null, this.dropDown())
                         ),
                         React.DOM.tr(null,
@@ -122,7 +120,7 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
                         ),
                         React.DOM.tr(null,
                             React.DOM.td(null, ''),
-                            React.DOM.td(null, React.DOM.input({ type: 'submit', value: 'Add account!' }))
+                            React.DOM.td(null, React.DOM.input({ type: 'submit', value: 'Add debt!' }))
                         )
                     )
                  )

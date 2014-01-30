@@ -7,7 +7,7 @@ define(['database', 'react', 'settings', 'json_req'], function(Database, React, 
 
 
         getInitialState: function() {
-            return { error: null, inProgress: false, done: false };
+            return { error: null, msg: null, inProgress: false, done: false };
         },
 
         render: function() {

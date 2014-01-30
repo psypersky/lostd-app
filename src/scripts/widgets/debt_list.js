@@ -7,7 +7,6 @@ define(['react', 'widgets/db_list_mixin'], function(React, DbListMixin) {
 
         mixins: [DbListMixin('debt')],
 
-
         render: function() {
 
             var self = this;
@@ -22,7 +21,7 @@ define(['react', 'widgets/db_list_mixin'], function(React, DbListMixin) {
                 var value = self.state.dbList[k];
 
                 return React.DOM.tr({ key: k },
-                    React.DOM.td(null, value.account),
+                    React.DOM.td(null, value.tab),
                     React.DOM.td(null, value.direction),
                     React.DOM.td(null, value.amount),
                     React.DOM.td(null, value.currency),
@@ -31,7 +30,7 @@ define(['react', 'widgets/db_list_mixin'], function(React, DbListMixin) {
             });
 
             list.unshift(React.DOM.tr({ key: 'header' },
-                React.DOM.th(null, 'Account'),
+                React.DOM.th(null, 'Tab'),
                 React.DOM.th(null, 'Direction'),
                 React.DOM.th(null, 'Amount'),
                 React.DOM.th(null, 'Currency'),

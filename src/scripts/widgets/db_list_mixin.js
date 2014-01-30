@@ -5,6 +5,7 @@
 define(['react', 'database'], function(React, Database) {
 
     return function(what) {
+
         return {
             getInitialState: function() {
                 return { dbList: {}, dbListLoaded: false }
@@ -13,7 +14,7 @@ define(['react', 'database'], function(React, Database) {
             componentWillMount: function() {
                 var self = this;
 
-
+                // PouchDB destroys closures, so we need to build a function.. :' (
                 var map = new Function('doc',
                     'if (doc.type === ' + JSON.stringify(what) + ')' +
                         'emit(doc._id, doc);'

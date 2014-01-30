@@ -22,7 +22,7 @@ h1, h2 {
     margin-bottom: 10px;
 }
 
-#tabs li {
+#categories li {
     border: 1px solid black;
     border-top-left-radius: 15px;
     border-top-right-radius: 15px;
@@ -31,7 +31,7 @@ h1, h2 {
     padding: 16px;
 }
 
-#tabs .active {
+#categories .active {
     color: white;
     background-color: black;
 }

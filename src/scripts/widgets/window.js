@@ -2,12 +2,12 @@
 
 define(['react','pouchdb-nightly',
     'database', 'settings',
-    'widgets/account_list', 'widgets/account_adder',
+    'widgets/tab_list', 'widgets/tab_adder',
     'widgets/debt_adder', 'widgets/debt_list',
     'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login'],
     function(React, PouchDB
         , Database, Settings
-        , AccountList, AccountAdder
+        , TabList, TabAdder
         , DebtAdder, DebtList
         , SettingsOverview, SettingsRegister, SettingsAdvanced, SettingsLogin) {
 
@@ -19,32 +19,36 @@ define(['react','pouchdb-nightly',
 		displayName: 'Window',
 
 		getInitialState: function() {
-			var tab = 'accounts';
-			return { tab: tab, side: this.defaultSide(tab) };
+            if (Settings.getIsLoggedIn()) {
+                var category = 'tabs';
+                return { category: category, side: this.defaultSide(category) };
+            } else {
+                return { category: 'settings', side: 'login' };
+            }
 		},
 
-		defaultSide: function(tab) {
-			return this.options(tab)[0][0];
+		defaultSide: function(category) {
+			return this.options(category)[0][0];
 		},
 
-		mkProperty: function(tab) {
+		mkProperty: function(category) {
 			var self = this;
 
-			if (this.state.tab === tab)
+			if (this.state.category === category)
 				return { className: 'active' };
 			else 
 				return {
 					onClick: function() {
-                        self.setState({ tab: tab, side: self.defaultSide(tab) });
+                        self.setState({ category: category, side: self.defaultSide(category) });
 					}
 				};
 		},
 
-		options: function(tab) {
-			switch (tab) {
-				case 'accounts':
+		options: function(category) {
+			switch (category) {
+				case 'tabs':
 					return [['name', 'By Name']
-						   ,['add', 'Add Account']];
+						   ,['add', 'Create a Tab']];
 				case 'debt':
 					return [['add', 'Add']
 						   ,['list', 'List']];
@@ -54,16 +58,16 @@ define(['react','pouchdb-nightly',
 				case 'settings':
 					return [['overview', 'Overview']
 						   ,['login', 'Login']
-						   ,['register', 'Create account']
+						   ,['register', 'Register']
 						   ,['advanced', 'Danger Zone']];
 				default:
-					assert('Unknown tab: ' + tab);
+					assert('Unknown category: ' + category);
 			}
 		},
 
 		sidebar: function() {
 
-			var opts = this.options(this.state.tab);
+			var opts = this.options(this.state.category);
 
 			var self = this;
 
@@ -85,13 +89,13 @@ define(['react','pouchdb-nightly',
 
 		widget: function() {
 			var self = this;
-			switch(this.state.tab) {
-				case 'accounts':
+			switch(this.state.category) {
+				case 'tabs':
 					switch(this.state.side) {
 						case 'name':
-							return AccountList(null);
+							return TabList(null);
 						case 'add':
-							return AccountAdder(null);
+							return TabAdder(null);
 					}
 					break;
                 case 'debt':
@@ -121,7 +125,7 @@ define(['react','pouchdb-nightly',
 					break;
 			}
 
-			var err = 'Unknown window widget for: ' + this.state.tab + ' and ' + this.state.side;
+			var err = 'Unknown window widget for: ' + this.state.category + ' and ' + this.state.side;
 			console.log(err);
 			return React.DOM.p(null, err);
 		},
@@ -130,8 +134,8 @@ define(['react','pouchdb-nightly',
 			return (
 				React.DOM.div(null,
 					React.DOM.h1(null, 'Lostd App'),		
-					React.DOM.ul({ id: 'tabs' },
-						React.DOM.li(this.mkProperty('accounts'), 'Accounts'),
+					React.DOM.ul({ id: 'categories' },
+						React.DOM.li(this.mkProperty('tabs'), 'Tabs'),
 						React.DOM.li(this.mkProperty('debt'), 'Debt'),
 						React.DOM.li(this.mkProperty('payment'), 'Payment'),
 						React.DOM.li(this.mkProperty('settings'), 'Settings')

@@ -4,7 +4,6 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
 
     var db = new PouchDb('lostd');
 
-
     function continuousReplication() {
 
         var cancel = false;
@@ -113,10 +112,17 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
 
         },
 
-        addAccount: function(name, description, callback) {
+        docsCount: function(callback) {
+            db.info(function(err,resp) {
+                if (err) return callback(err);
+                callback(null, resp);
+            });
+        },
+
+        addTab: function(name, description, callback) {
             db.post(
                 {
-                    type: 'account',
+                    type: 'tab',
                     name: name,
                     description: description,
                     created: new Date()
@@ -124,11 +130,11 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
                 callback);
         },
 
-        addDebt: function(account, direction, amount, currency, description, callback) {
+        addDebt: function(tab, direction, amount, currency, description, callback) {
             db.post(
                 {
                     type: 'debt',
-                    account: account,
+                    tab: tab,
                     direction: direction,
                     amount: amount,
                     currency: currency,

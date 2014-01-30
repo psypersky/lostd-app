@@ -63,6 +63,10 @@ define(function() {
     }
 
     return {
+        getIsLoggedIn: getOrElse('is_logged_in', false),
+        setIsLoggedIn: set('is_logged_in'),
+        listenIsLoggedIn: listen('is_logged_in'),
+
         getLastImport: getOrElse('last_import', undefined),
         setLastImport: set('last_import'),
         listenLastImport: listen('last_import'),
