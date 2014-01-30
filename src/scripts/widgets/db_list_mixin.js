@@ -6,6 +6,10 @@ define(['react', 'database'], function(React, Database) {
 
     return function(what) {
         return {
+            getInitialState: function() {
+                return { dbList: {}, dbListLoaded: false }
+            },
+
             componentWillMount: function() {
                 var self = this;
 

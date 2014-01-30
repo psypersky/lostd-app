@@ -67,3 +67,10 @@ h1, h2 {
 .errorText {
     color: red;
 }
+
+.account {
+    margin: 20px;
+    padding: 10px;
+    border: 1px solid grey;
+    background-color: lightgrey;
+}

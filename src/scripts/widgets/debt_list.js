@@ -7,10 +7,6 @@ define(['react', 'widgets/db_list_mixin'], function(React, DbListMixin) {
 
         mixins: [DbListMixin('debt')],
 
-        getInitialState: function() {
-            return { dbList: {}, dbListLoaded: false };
-        },
-
 
         render: function() {
 
