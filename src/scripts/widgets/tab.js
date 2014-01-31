@@ -10,28 +10,33 @@ define(['react', 'database'], function(React, Database) {
         },
 
         propTypes: {
-            key: React.PropTypes.string.isRequired,
-            rev: React.PropTypes.string.isRequired,
-            name: React.PropTypes.string.isRequired,
-            description: React.PropTypes.string
+            object: React.PropTypes.object.isRequired,
+            currencies: React.PropTypes.object.isRequired
         },
 
         render: function() {
+            var self = this;
+            var currencies = Object.keys(this.props.currencies).map(function(cur) {
+                return React.DOM.p({ key: cur }, cur, ': ', self.props.currencies[cur]);
+            });
+
+
             return React.DOM.div({ className: 'account' },
-                React.DOM.h3(null, this.props.name),
-                (this.state.err ? React.DOM.p(null, this.state.err) : null),
-                React.DOM.p(null, this.props.description),
+                React.DOM.h3(null, this.props.object.name),
+                (this.state.error ? React.DOM.p({ className: 'errorText' }, this.state.error) : null),
+                React.DOM.p(null, this.props.object.description),
+                currencies,
                 React.DOM.input({type: 'button', value: 'Delete!', disabled: (this.state.isDeleting || this.state.error ), onClick: this.onDelete })
             );
         },
 
         onDelete: function() {
-            console.log('Trying to delete ', this.props.key);
+            console.log('Trying to delete ', this.props.object);
             this.setState({ isDeleting: true });
 
             var self = this;
 
-            Database.remove({ _id: this.props.key, _rev: this.props.rev }, function(err, response) {
+            Database.remove(self.props.object, function(err, response) {
                 console.log('Removed doc: ', self.props.key, ' with response ', err, ' -- ', response);
 
                 if (self.isMounted()) {

@@ -1,20 +1,23 @@
 'use strict';
 
-define(['react', 'settings', 'json_req', 'widgets/input_username'], function(React, Settings, JsonReq, InputUsername) {
+define(['database', 'react', 'settings', 'json_req', 'widgets/input_username'], function(Database, React, Settings, JsonReq, InputUsername) {
 
 	return React.createClass({
 		displayName: 'SettingsRegister',
 
 		getInitialState: function() {
-			return { error: null, inProgress: false };
+			return { error: null, inProgress: false, done: false };
 		},
 
 		render: function() {
+
+            if (this.state.done)
+                return React.DOM.p(null, 'Account created, and logged in! Enjoy!');
+
 			return (
 				React.DOM.form({ onSubmit: this.onRegister },
 					React.DOM.h2(null, 'Register!'),
-					(this.state.error ? React.DOM.p(null, this.state.error) : null),
-
+					(this.state.error ? React.DOM.p({ className: 'errorText' }, this.state.error) : null),
 					React.DOM.table(null,
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Username:'),
@@ -22,7 +25,7 @@ define(['react', 'settings', 'json_req', 'widgets/input_username'], function(Rea
 						),
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Password:'),
-							React.DOM.td(null, React.DOM.input({ ref: 'password', type: 'password', placeholder: 'password', required: true }))
+							React.DOM.td(null, React.DOM.input({ ref: 'password', type: 'password', placeholder: 'password', required: true, pattern: '.{4,}', title: 'Password must have AT LEAST 4 characters (but seriously, should be much more)' }))
 						),
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Confirm Password:'),
@@ -36,7 +39,8 @@ define(['react', 'settings', 'json_req', 'widgets/input_username'], function(Rea
 								React.DOM.td(null, ''),
 							React.DOM.td(null, React.DOM.input({ disabled: this.state.inProgress, type: 'submit', value: 'Register!' }))
 						)
-					)
+					),
+                    (this.state.inProgress ? React.DOM.p(null, 'Status: ', this.state.inProgress) : null)
 				)
 			)
 		},
@@ -59,13 +63,6 @@ define(['react', 'settings', 'json_req', 'widgets/input_username'], function(Rea
 			}
 
 			var email = this.refs.email.getDOMNode().value.trim();
-			if (email.length < 4) {
-				this.setState({ error: 'Email must be at least 4 characters' });
-				return false;
-			} else if (email.indexOf('@') === -1) {
-				this.setState({ error: 'Email is invalid' });
-				return false;
-			}
 
 			this.setState({ error: null, inProgress: true });
 
@@ -81,16 +78,37 @@ define(['react', 'settings', 'json_req', 'widgets/input_username'], function(Rea
                 if (err) {
                     console.error('Got error: ', err);
                     err = err.toString();
+                    if (self.isMounted())
+                        self.setState({ error: 'Error: ' + err, inProgress: false });
+                    return;
                 }
 
+                console.log('Great success!! Got response from federation: ', response);
+
+                Database.cancel(); // Perhaps being a little too defensive..
+
+                var databaseURL = response['database_url'];
+
                 if (self.isMounted())
-				    self.setState({ error: err, inProgress: false });
+                    self.setState({ inProgress: 'Synchronizing offline copy of data' });
 
-				if (!err) {
-					Settings.set('database_url', response.database_url);
-				}
+                Database.sync(databaseURL, function(err) {
+                    if (err) {
+                        console.error('Error during sync: ', err);
+                        if (self.isMounted())
+                            self.setState({ error: 'Unable to sync data', inProgress: false });
+                        return;
+                    }
+                    // All ok!
 
-			});
+                    Settings.set('database_url', databaseURL);
+
+                    if (self.isMounted())
+                        self.setState({ inProgress: false, done: true });
+                });
+
+
+            });
 
 			return false;
 		}

@@ -40,7 +40,7 @@ define(['database', 'react', 'settings'], function(Database, React, Settings) {
                     React.DOM.tr(null,
                         React.DOM.td(null, 'Database URL: '),
                         React.DOM.td(null,
-                            React.DOM.input({ ref: 'databaseURL', type: 'text', defaultValue: Settings.get('database_server') })
+                            React.DOM.input({ ref: 'databaseURL', type: 'text', defaultValue: Settings.get('database_url') })
                         )
                     ),
                     React.DOM.tr(null,

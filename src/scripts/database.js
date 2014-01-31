@@ -75,8 +75,8 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
             });
         },
 
-        onChange: function(f) {
-            return db.changes({ since: 'latest', continuous: true, include_docs: true, onChange: f });
+        onChange: function(onChange) {
+            return db.changes({ since: 'latest', continuous: true, include_docs: true, onChange: onChange });
         },
 
         exportTo: function(dbUrl, callback) {
@@ -169,7 +169,9 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
 
         query: function(mapFunction, callback) {
             db.query({ map: mapFunction}, callback);
-        }
+        },
+
+        db: db
 
     };
 });

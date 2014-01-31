@@ -4,12 +4,14 @@ define(['react','pouchdb-nightly',
     'database', 'settings',
     'widgets/tab_list', 'widgets/tab_adder',
     'widgets/debt_adder', 'widgets/debt_list',
-    'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login'],
+    'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login', 'widgets/settings_logout'
+],
     function(React, PouchDB
         , Database, Settings
         , TabList, TabAdder
         , DebtAdder, DebtList
-        , SettingsOverview, SettingsRegister, SettingsAdvanced, SettingsLogin) {
+        , SettingsOverview, SettingsRegister, SettingsAdvanced, SettingsLogin, SettingsLogout
+        , QueryMixin) {
 
 	function assert(b) {
 		if (!b) throw new Error('Assertion Failure!');
@@ -19,13 +21,25 @@ define(['react','pouchdb-nightly',
 		displayName: 'Window',
 
 		getInitialState: function() {
-            if (Settings.get('logged_in')) {
+
+            if (Settings.get('database_url')) {
                 var category = 'tabs';
-                return { category: category, side: this.defaultSide(category) };
+                return { loggedIn: true, category: category, side: this.defaultSide(category) };
             } else {
-                return { category: 'settings', side: 'login' };
+                return { loggedIn: false, category: 'settings', side: 'login' };
             }
 		},
+
+        componentWillMount: function() {
+            var self = this;
+            this.loggedInListener = Settings.listen('database_url', function (dbUrl) {
+                self.setState({ loggedIn: !!dbUrl });
+            });
+        },
+
+        componentWillUnmount: function() {
+            this.loggedInListener.cancel();
+        },
 
 		defaultSide: function(category) {
 			return this.options(category)[0][0];
@@ -56,10 +70,8 @@ define(['react','pouchdb-nightly',
 					return [['add', 'Add']
 						   ,['details', 'Details']];
 				case 'settings':
-					return [['overview', 'Overview']
-						   ,['login', 'Login']
-						   ,['register', 'Register']
-						   ,['advanced', 'Danger Zone']];
+                    var start = (this.state.loggedIn ? [['logout', 'Logout']] : [['login', 'Login'], ['register', 'Register']]);
+					return start.concat([['overview', 'Overview'], ['advanced', 'Danger Zone']]);
 				default:
 					assert('Unknown category: ' + category);
 			}
@@ -113,12 +125,14 @@ define(['react','pouchdb-nightly',
                     break;
 				case 'settings':
 					switch (this.state.side) {
-						case 'overview':
-							return SettingsOverview(null);
 						case 'login':
 							return SettingsLogin(null);
 						case 'register':
 							return SettingsRegister(null);
+                        case 'logout':
+                            return SettingsLogout(null);
+                        case 'overview':
+                            return SettingsOverview(null);
 						case 'advanced':
 							return SettingsAdvanced(null);
 					}
@@ -153,6 +167,7 @@ define(['react','pouchdb-nightly',
 					)
 				)
 			);
-		}
+		},
+
 	});
 });

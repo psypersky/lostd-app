@@ -89,7 +89,6 @@ define(['database', 'react', 'settings', 'json_req', 'widgets/input_username'], 
                     // All ok!
 
                     Settings.set('database_url', databaseURL);
-                    Settings.set('logged_in', true);
 
                     if (self.isMounted())
                         self.setState({ inProgress: false, done: true });
