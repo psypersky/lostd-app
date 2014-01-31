@@ -64,7 +64,7 @@ define(['database', 'react', 'settings', 'json_req', 'widgets/input_username'], 
 
 			var email = this.refs.email.getDOMNode().value.trim();
 
-			this.setState({ error: null, inProgress: true });
+			this.setState({ error: null, inProgress: 'Asking federation to provision a new account and database...' });
 
             var federation = Settings.get('federation_server');
             if (!federation)
