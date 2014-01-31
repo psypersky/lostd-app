@@ -38,7 +38,7 @@ define(['react', 'widgets/db_list_mixin'], function(React, DbListMixin) {
             ));
 
             return React.DOM.div(null,
-                React.DOM.h2(null, "Debt Info"),
+                React.DOM.h2(null, 'Debt Info'),
                 React.DOM.table({ id: 'infoTable' }, list)
             );
         }
