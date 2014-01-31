@@ -19,7 +19,7 @@ define(['react','pouchdb-nightly',
 		displayName: 'Window',
 
 		getInitialState: function() {
-            if (Settings.getIsLoggedIn()) {
+            if (Settings.get('logged_in')) {
                 var category = 'tabs';
                 return { category: category, side: this.defaultSide(category) };
             } else {

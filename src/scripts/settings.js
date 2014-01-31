@@ -12,76 +12,58 @@ define(function() {
     }
     localStorage = window.localStorage;
 
-    function getOrElse(field, otherwise) {
-        return function() {
-            var t = localStorage[field];
-            return t ? t : otherwise;
-        }
-    }
-
     var listenMap = {};
 
-    function set(field) {
-        return function(value) {
-            if (value === undefined)
-                delete localStorage[field];
-            else {
-                if (localStorage[field] !== value) {
+    function get(field) {
+        return localStorage[field];
+    }
 
-                    var listeners = listenMap[field] || {};
+    function getOrElse(field, otherwise) {
+        var t = localStorage[field];
+        return t ? t : otherwise;
+    }
 
-                    Object.keys(listeners).forEach(function (key) {
-                        listeners[key](value);
-                    });
+    function set(field, value) {
+        var listeners = listenMap[field] || {};
 
-                    localStorage[field] = value;
-                }
-            }
-        }
+        Object.keys(listeners).forEach(function (key) {
+            listeners[key](value);
+        });
+
+        localStorage[field] = value;
+    }
+
+    function remove(field) {
+        set(field, undefined); // Give listeners a heads-up
+        delete localStorage[field];
     }
 
     // Add a listener function to a specific key. This function will be called with the new value *before* any change happens
-    function listen(key) {
-        return function(fn) {
-            if (key in listenMap) {
-                var listeners = listenMap[key];
-                var counter = ++listeners['counter'];
-                listeners[counter] = fn;
-                return { cancel: function() { delete listeners[counter]; }}
-            } else {
-                var o = { '0': fn };
-                Object.defineProperty(o, 'counter', {
-                    configurable: true,
-                    enumerable: false,
-                    value: 0,
-                    writable: true
-                });
-                listenMap[key] = o;
-                return { cancel: function() { delete listenMap[key][0]; }}
-            }
+    function listen(key, fn) {
+        if (key in listenMap) {
+            var listeners = listenMap[key];
+            var counter = ++listeners['counter'];
+            listeners[counter] = fn;
+            return { cancel: function() { delete listeners[counter]; }}
+        } else {
+            var o = { '0': fn };
+            Object.defineProperty(o, 'counter', {
+                configurable: true,
+                enumerable: false,
+                value: 0,
+                writable: true
+            });
+            listenMap[key] = o;
+            return { cancel: function() { delete listenMap[key][0]; }}
         }
     }
 
     return {
-        getIsLoggedIn: getOrElse('is_logged_in', false),
-        setIsLoggedIn: set('is_logged_in'),
-        listenIsLoggedIn: listen('is_logged_in'),
-
-        getLastImport: getOrElse('last_import', undefined),
-        setLastImport: set('last_import'),
-        listenLastImport: listen('last_import'),
-
-        getLastExport: getOrElse('last_export', undefined),
-        setLastExport: set('last_export'),
-        listenLastExport: listen('last_export'),
-
-        getFederationServer: getOrElse('federation_server', 'http://federation.lostd.com'),
-        setFederationServer: set('federation_server'),
-        listenFederationServer: listen('federation_server'),
-
-        getDatabaseURL: getOrElse('database_url', undefined),
-        setDatabaseURL: set('database_url'),
-        listenDatabaseURL: listen('database_url')
+        get: get,
+        getOrElse: getOrElse,
+        set: set,
+        remove: remove,
+        listen: listen
     };
 
 

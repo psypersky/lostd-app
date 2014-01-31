@@ -8,7 +8,7 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
 
         var cancel = false;
 
-        var dbUrl = Settings.getDatabaseURL();
+        var dbUrl = Settings.get('database_url');
         if (!dbUrl) return;
 
         console.log('Replication to ', dbUrl, ' has begun');
@@ -32,7 +32,7 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
             return db.replicate.from(dbUrl, { continuous: true }, function(err) {
                 console.log('Resetting continuous import...', err);
                 if (!err)
-                    Settings.setLastImport(new Date());
+                    Settings.set('last_import', new Date());
                 window.setTimeout(continuousImport, 2000);
             });
         }
@@ -43,7 +43,7 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
             return db.replicate.to(dbUrl, { continuous: true }, function(err) {
                 console.log('Resetting continuous export...', err);
                 if (!err)
-                    Settings.setLastExport(new Date());
+                    Settings.set('last_export', new Date());
                 window.setTimeout(continuousExport, 2000);
             });
         }
@@ -79,8 +79,29 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
             return db.changes({ since: 'latest', continuous: true, include_docs: true, onChange: f });
         },
 
-        sync: function(importCallback, exportCallback, doneCallback) {
-            var dbUrl = Settings.getDatabaseURL();
+        exportTo: function(dbUrl, callback) {
+            db.replicate.to(dbUrl, function(err) {
+                console.log('Finished exporting to ', dbUrl, ' with error: ', err);
+
+                if (!err)
+                    Settings.set('last_export', new Date());
+
+                callback(err)
+            });
+        },
+
+        importFrom: function(dbUrl, callback) {
+            db.replicate.from(dbUrl, function(err) {
+                console.log('Finished import from ', dbUrl, ' with error: ', err);
+
+                if (!err)
+                    Settings.set('last_import', new Date());
+
+                callback(err)
+            });
+        },
+
+        sync: function(dbUrl, callback) {
             console.log('Syncing to ', dbUrl);
 
             var remaining = 2;
@@ -89,11 +110,10 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
             db.replicate.from(dbUrl, function(err) {
                 console.log('Finished importing from ', dbUrl);
 
-                Settings.setLastImport(new Date());
+                Settings.set('last_import', new Date());
 
-                importCallback(err);
                 if (--remaining == 0)
-                    doneCallback(lastErr || err);
+                    callback(lastErr || err);
                 else
                     lastErr = err;
             });
@@ -101,11 +121,10 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
             db.replicate.to(dbUrl, function(err) {
                 console.log('Finished exporting to ', dbUrl);
 
-                Settings.setLastExport(new Date());
+                Settings.set('last_export', new Date());
 
-                exportCallback(err);
                 if (--remaining == 0)
-                    doneCallback(lastErr || err);
+                    callback(lastErr || err);
                 else
                     lastErr = err;
             });
@@ -115,7 +134,7 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
         docsCount: function(callback) {
             db.info(function(err,resp) {
                 if (err) return callback(err);
-                callback(null, resp);
+                callback(null, resp['doc_count']);
             });
         },
 

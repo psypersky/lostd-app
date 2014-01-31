@@ -8,40 +8,39 @@ define(['database', 'react', 'settings'], function(Database, React, Settings) {
 		onSave: function() {
 			var federationServer = this.refs.federationServer.getDOMNode().value.trim();
             if (federationServer.length === 0)
-                Settings.setFederationServer(undefined);
+                Settings.remove('federation_server');
             else
-			    Settings.setFederationServer(federationServer);
+			    Settings.set('federation_server', federationServer);
 			
 			var databaseURL = this.refs['databaseURL'].getDOMNode().value.trim();
             if (databaseURL.length === 0)
-                databaseURL = undefined;
-
-            if (databaseURL !== Settings.getDatabaseURL()) {
-                Settings.setDatabaseURL(databaseURL);
-                Database.restartReplication();
-                Settings.setLastExport(undefined);
-                Settings.setLastImport(undefined);
-            }
-
+                Settings.remove('database_url');
+            else
+                Settings.set('database_url', databaseURL);
 
 			return false;
 		},
 
 
+
 		render: function() {
+            var federationServer = Settings.get('federation_server');
+            if (!federationServer)
+                federationServer = 'http://federation.lostd.com';
+
 			return React.DOM.form({ onSubmit: this.onSave },
 				React.DOM.h2(null, 'Advanced Settings'),
                 React.DOM.table(null,
                     React.DOM.tr(null,
                         React.DOM.td(null, 'Federation Server: '),
                         React.DOM.td(null,
-                            React.DOM.input({ ref: 'federationServer', type: 'text', defaultValue: Settings.getFederationServer() })
+                            React.DOM.input({ ref: 'federationServer', type: 'text', defaultValue: federationServer })
                         )
                     ),
                     React.DOM.tr(null,
                         React.DOM.td(null, 'Database URL: '),
                         React.DOM.td(null,
-                            React.DOM.input({ ref: 'databaseURL', type: 'text', defaultValue: Settings.getDatabaseURL() })
+                            React.DOM.input({ ref: 'databaseURL', type: 'text', defaultValue: Settings.get('database_server') })
                         )
                     ),
                     React.DOM.tr(null,

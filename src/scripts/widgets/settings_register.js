@@ -1,6 +1,6 @@
 'use strict';
 
-define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
+define(['react', 'settings', 'json_req', 'widgets/input_username'], function(React, Settings, JsonReq, InputUsername) {
 
 	return React.createClass({
 		displayName: 'SettingsRegister',
@@ -18,7 +18,7 @@ define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
 					React.DOM.table(null,
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Username:'),
-							React.DOM.td(null, React.DOM.input({ ref: 'username', type: 'text', placeholder: 'username', required: true }))
+							React.DOM.td(null, InputUsername({ ref: 'username' }))
 						),
 						React.DOM.tr(null,
 							React.DOM.td(null, 'Password:'),
@@ -45,17 +45,6 @@ define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
 		onRegister: function() {
 			var username = this.refs.username.getDOMNode().value.trim();
 
-			if (username.length === 0) {
-				this.setState({ error: 'Please enter a username' });
-				return false;
-			} else if (username.length < 4) {
-				this.setState({ error: 'Username is too short. Please use at least 4 characters' });
-				return false;
-			} else if (username.indexOf('@') !== -1) {
-				this.setState({ error: 'The @ symbol is invalid in a username'});
-				return false;
-			}
-
 			var password = this.refs.password.getDOMNode().value;
 			var confirm = this.refs.confirm.getDOMNode().value;
 
@@ -80,8 +69,11 @@ define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
 
 			this.setState({ error: null, inProgress: true });
 
-			var to = Settings.getFederationServer() + '/api/create_user';
+            var federation = Settings.get('federation_server');
+            if (!federation)
+                federation = 'http://federation.lostd.com';
 
+			var to = federation + '/api/create_user';
 			var self = this;
 
 			JsonReq.post(to, { username: username, password: password, email: email }, function(err, response) {
@@ -95,7 +87,7 @@ define(['react', 'settings', 'json_req'], function(React, Settings, JsonReq) {
 				    self.setState({ error: err, inProgress: false });
 
 				if (!err) {
-					Settings.setDatabaseURL(response.database_url);
+					Settings.set('database_url', response.database_url);
 				}
 
 			});

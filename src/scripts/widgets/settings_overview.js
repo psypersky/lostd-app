@@ -6,7 +6,7 @@ define(['react', 'database', 'settings'], function(React, Database, Settings) {
         displayName: 'SettingsOverview',
 
         getInitialState: function() {
-            return { syncing: false, log: [], lastImport: Settings.getLastImport(), lastExport: Settings.getLastExport() };
+            return { syncing: false, error: null, success: false, lastImport: Settings.get('last_import'), lastExport: Settings.get('last_export') };
         },
 
         importListener: undefined,
@@ -15,11 +15,11 @@ define(['react', 'database', 'settings'], function(React, Database, Settings) {
 
         componentWillMount: function() {
             var self = this;
-            this.importListener = Settings.listenLastImport(function (lastImport) {
+            this.importListener = Settings.listen('last_import', function (lastImport) {
                 self.setState({ lastImport: lastImport });
             });
 
-            this.exportListener = Settings.listenLastExport(function (lastExport) {
+            this.exportListener = Settings.listen('last_export', function (lastExport) {
                 self.setState({ lastExport: lastExport });
             });
         },
@@ -31,30 +31,20 @@ define(['react', 'database', 'settings'], function(React, Database, Settings) {
 
         sync: function() {
             var self = this;
-            function onImportComplete(err) {
-                if (self.isMounted()) {
-                    if (err)
-                        self.setState({ log: self.state.log.concat('Import failed with error: ', err) });
-                    else
-                        self.setState({ log: self.state.log.concat('Import succeed!') });
-                }
-            }
-            function onExportComplete(err) {
-                if (self.isMounted()) {
-                    if (err)
-                        self.setState({ log: self.state.log.concat('Export failed with error: ', err) });
-                    else
-                        self.setState({ log: self.state.log.concat('Export succeed!') });
-                }
-            }
-            function onComplete() {
-                if (self.isMounted()) {
-                    self.setState({ syncing: false });
-                }
-            }
 
-            self.setState({ log: [], syncing: true });
-            Database.sync(onImportComplete, onExportComplete, onComplete);
+            self.setState({ error: null, syncing: true, success: false });
+
+            Database.sync(Settings.get('database_url'), function(err) {
+                if (err) {
+                    console.error('Got error during sync: ', err);
+                    if (self.isMounted())
+                        self.setState({ syncing: false, error: 'Unable to sync! Got error: ' + err});
+                    return;
+                }
+
+                if (self.isMounted())
+                    self.setState({ syncing: false, success: true });
+            });
         },
 
         render: function() {
@@ -71,7 +61,8 @@ define(['react', 'database', 'settings'], function(React, Database, Settings) {
                 React.DOM.p(null, 'Last Import: ' + this.state.lastImport),
                 React.DOM.p(null, 'Last Export: ' + this.state.lastExport),
                 button,
-                this.state.log.join(' | ')
+                (this.state.done ? 'Sync successful!' : null),
+                (this.state.error ? React.DOM.p({className: 'errorText'}, 'Got error: ', this.state.error) : null)
             );
         }
     });

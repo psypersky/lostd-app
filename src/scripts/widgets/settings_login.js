@@ -1,13 +1,13 @@
 'use strict';
 
-define(['database', 'react', 'settings', 'json_req'], function(Database, React, Settings, JsonReq) {
+define(['database', 'react', 'settings', 'json_req', 'widgets/input_username'], function(Database, React, Settings, JsonReq, InputUsername) {
 
     return React.createClass({
         displayName: 'SettingsLogin',
 
 
         getInitialState: function() {
-            return { error: null, msg: null, inProgress: false, done: false };
+            return { error: null, inProgress: false, done: false };
         },
 
         render: function() {
@@ -15,7 +15,7 @@ define(['database', 'react', 'settings', 'json_req'], function(Database, React, 
             if (this.state.done)
                 return React.DOM.p(null, 'Successfully Logged In!');
 
-            var err = this.state.error ? React.DOM.p(null, this.state.error) : null;
+            var err = this.state.error ? React.DOM.p({ className: 'errorText' }, this.state.error) : null;
 
             return React.DOM.form({ onSubmit: this.onLogin },
                 React.DOM.h2(null, 'Login!'),
@@ -25,16 +25,14 @@ define(['database', 'react', 'settings', 'json_req'], function(Database, React, 
                             React.DOM.td(null,
                                 'Username: '
                             ),
-                            React.DOM.td(null,
-                                React.DOM.input({ ref: 'username', type: 'text', placeholder: 'username' })
-                            )
+                            React.DOM.td(null, InputUsername({ ref: 'username' }))
                         ),
                         React.DOM.tr(null,
                             React.DOM.td(null,
                                 'Password: '
                             ),
                             React.DOM.td(null,
-                                React.DOM.input({ ref: 'password', type: 'password', placeholder: 'password' })
+                                React.DOM.input({ ref: 'password', type: 'password', placeholder: 'password', pattern: '.{4,}', required: true, title: 'Password must have at least 4 characters' })
                             )
                         ),
                         React.DOM.tr(null,
@@ -45,62 +43,58 @@ define(['database', 'react', 'settings', 'json_req'], function(Database, React, 
                                 React.DOM.input({ disabled: this.state.inProgress, type: 'submit', value: 'Login!' })
                             )
                         )
-                    )
+                    ),
+                    (this.state.inProgress ? React.DOM.p(null, 'Status: ', this.state.inProgress) : null)
             );
         },
 
         onLogin: function() {
             var username = this.refs.username.getDOMNode().value.trim();
-
-            if (username.length === 0) {
-                this.setState({ error: 'Please enter a username' });
-                return false;
-            } else if (username.length < 4) {
-                this.setState({ error: 'Username is too short. Please use at least 4 characters' });
-                return false;
-            } else if (username.indexOf('@') !== -1) {
-                this.setState({ error: 'The @ symbol is invalid in a username'});
-                return false;
-            }
-
             var password = this.refs.password.getDOMNode().value;
 
-            if (password.length === 0) {
-                this.setState({ error: 'Please enter a password' });
-                return false;
-            }
+            this.setState({ error: null, inProgress: 'Logging into lostd federation!' });
 
-            this.setState({ error: null, inProgress: true });
+            var federation = Settings.get('federation_server');
+            if (!federation)
+                federation = 'http://federation.lostd.com';
 
-            var to = Settings.getFederationServer() + '/api/login';
-
+            var to = federation + '/api/login';
             var self = this;
-
             JsonReq.post(to, { username: username, password: password }, function(err, response) {
 
                 if (err) {
                     console.error('Got error: ', err);
                     err = err.toString();
-                }
-
-                if (!err) {
-                    console.log('Great success!! Logged in!');
-                    var databaseURL = response['database_url'];
-
-                    if (!databaseURL || databaseURL !== Settings.getDatabaseURL()) {
-                        Settings.setDatabaseURL(databaseURL);
-                        Database.restartReplication();
-                        Settings.setLastExport(undefined);
-                        Settings.setLastImport(undefined);
-                    }
-                }
-
-                if (self.isMounted()) {
-                    if (err)
+                    if (self.isMounted())
                         self.setState({ error: 'Error: ' + err, inProgress: false });
-                    else
-                        self.setState({ inProgress: false, done: true});
+                    return;
                 }
+
+                console.log('Great success!! Got response from federation: ', response);
+
+                Database.cancel(); // Perhaps being a little too defensive..
+
+                var databaseURL = response['database_url'];
+
+                if (self.isMounted())
+                    self.setState({ inProgress: 'Synchronizing offline copy of data' });
+
+                Database.sync(databaseURL, function(err) {
+                    if (err) {
+                        console.error('Error during sync: ', err);
+                        if (self.isMounted())
+                            self.setState({ error: 'Unable to sync data', inProgress: false });
+                        return;
+                    }
+                    // All ok!
+
+                    Settings.set('database_url', databaseURL);
+                    Settings.set('logged_in', true);
+
+                    if (self.isMounted())
+                        self.setState({ inProgress: false, done: true });
+                });
+
 
             });
 
