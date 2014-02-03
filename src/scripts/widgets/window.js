@@ -2,13 +2,13 @@
 
 define(['react','pouchdb-nightly',
     'database', 'settings',
-    'widgets/tab_list', 'widgets/tab_adder',
+    'widgets/contact_list', 'widgets/contact_adder',
     'widgets/debt_adder', 'widgets/debt_list',
     'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login', 'widgets/settings_logout'
 ],
     function(React, PouchDB
         , Database, Settings
-        , TabList, TabAdder
+        , ContactList, ContactAdder
         , DebtAdder, DebtList
         , SettingsOverview, SettingsRegister, SettingsAdvanced, SettingsLogin, SettingsLogout
         , QueryMixin) {
@@ -23,7 +23,7 @@ define(['react','pouchdb-nightly',
 		getInitialState: function() {
 
             if (Settings.get('database_url')) {
-                var category = 'tabs';
+                var category = 'contacts';
                 return { loggedIn: true, category: category, side: this.defaultSide(category) };
             } else {
                 return { loggedIn: false, category: 'settings', side: 'login' };
@@ -60,9 +60,9 @@ define(['react','pouchdb-nightly',
 
 		options: function(category) {
 			switch (category) {
-				case 'tabs':
+				case 'contacts':
 					return [['name', 'By Name']
-						   ,['add', 'Create a Tab']];
+						   ,['add', 'Create a contact']];
 				case 'debt':
 					return [['add', 'Add']
 						   ,['list', 'List']];
@@ -102,12 +102,12 @@ define(['react','pouchdb-nightly',
 		widget: function() {
 			var self = this;
 			switch(this.state.category) {
-				case 'tabs':
+				case 'contacts':
 					switch(this.state.side) {
 						case 'name':
-							return TabList(null);
+							return ContactList(null);
 						case 'add':
-							return TabAdder(null);
+							return ContactAdder(null);
 					}
 					break;
                 case 'debt':
@@ -149,7 +149,7 @@ define(['react','pouchdb-nightly',
 				React.DOM.div(null,
 					React.DOM.h1(null, 'Lostd App'),		
 					React.DOM.ul({ id: 'categories' },
-						React.DOM.li(this.mkProperty('tabs'), 'Tabs'),
+						React.DOM.li(this.mkProperty('contacts'), 'Contacts'),
 						React.DOM.li(this.mkProperty('debt'), 'Debt'),
 						React.DOM.li(this.mkProperty('payment'), 'Payment'),
 						React.DOM.li(this.mkProperty('settings'), 'Settings')

@@ -5,28 +5,28 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
     return React.createClass({
         displayName: 'AmountAdder',
 
-        mixins: [DbListMixin('tab')],
+        mixins: [DbListMixin('contact')],
 
         getInitialState: function() {
-            return { selectedTab: null,  done: false, isSubmitting: false, error: null };
+            return { selectedContact: null,  done: false, isSubmitting: false, error: null };
         },
 
-        onTabChange: function() {
+        onContactChange: function() {
 
-            var selected = this.refs['tabDropDown'].getDOMNode();
-            var tabId = selected.options[selected.selectedIndex].value;
+            var selected = this.refs['contactDropDown'].getDOMNode();
+            var contactId = selected.options[selected.selectedIndex].value;
 
-            if (tabId === 'NA')
-                tabId = null;
+            if (contactId === 'NA')
+                contactId = null;
 
-            this.setState({ selectedTab: tabId });
+            this.setState({ selectedContact: contactId });
 
         },
 
         handleAdd: function() {
 
-            if (!this.state['selectedTab']) {
-                this.setState( { isSubmitting: false, error: 'No tab has been selected' });
+            if (!this.state['selectedContact']) {
+                this.setState( { isSubmitting: false, error: 'No contact has been selected' });
                 return false;
             }
 
@@ -38,7 +38,7 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
                 this.setState( { isSubmitting: false, error: 'No direction has been selected '});
                 return false;
             }
-            var tab = this.state['selectedTab'];
+            var contact = this.state['selectedContact'];
             var direction = out ? 'outgoing' : 'incoming';
             var amount = parseFloat(this.refs['amount'].getDOMNode().value);
             var currency = this.refs['currency'].getDOMNode().value;
@@ -48,7 +48,7 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
             this.setState({ isSubmitting: true, error: null });
 
             var self = this;
-            Database.addDebt(this.state['selectedTab'], direction, amount, currency, description, function(err, response) {
+            Database.addDebt(this.state['selectedContact'], direction, amount, currency, description, function(err, response) {
                 if (!self.isMounted()) return;
 
                 if (err) {
@@ -69,9 +69,9 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
                 return React.DOM.option({ key: k, value: k }, value.name);
             });
 
-            list.unshift(React.DOM.option({ key: 'NA', value: 'NA' }, '-Please Select a Tab-'));
+            list.unshift(React.DOM.option({ key: 'NA', value: 'NA' }, '-Select a Contact-'));
 
-            return React.DOM.select({ ref: 'tabDropDown', onChange: this.onTabChange, required: true }, list);
+            return React.DOM.select({ ref: 'contactDropDown', onChange: this.onContactChange, required: true }, list);
         },
 
         render: function() {
@@ -80,9 +80,9 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
                 return React.DOM.p(null, 'Debt Added!');
 
             var selectedName;
-            if (this.state['selectedTab']) {
-                var tab = this.state.dbList[this.state.selectedTab];
-                selectedName = tab ? tab.name : '...';
+            if (this.state['selectedContact']) {
+                var contact = this.state.dbList[this.state['selectedContact']];
+                selectedName = contact ? contact.name : '...';
             } else {
                 selectedName = '...';
             }
@@ -93,7 +93,7 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
                     (this.state.error ? React.DOM.p({ className: 'errorText' }, this.state.error) : null),
                     React.DOM.table(null,
                         React.DOM.tr(null,
-                            React.DOM.td(null, 'Tab:'),
+                            React.DOM.td(null, 'Contact:'),
                             React.DOM.td(null, this.dropDown())
                         ),
                         React.DOM.tr(null,

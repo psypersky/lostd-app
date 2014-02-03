@@ -138,10 +138,10 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
             });
         },
 
-        addTab: function(name, description, callback) {
+        addContact: function(name, description, callback) {
             db.post(
                 {
-                    type: 'tab',
+                    type: 'contact',
                     name: name,
                     description: description,
                     created: new Date()
@@ -149,11 +149,11 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
                 callback);
         },
 
-        addDebt: function(tab, direction, amount, currency, description, callback) {
+        addDebt: function(contact, direction, amount, currency, description, callback) {
             db.post(
                 {
                     type: 'debt',
-                    tab: tab,
+                    contact: contact,
                     direction: direction,
                     amount: amount,
                     currency: currency,
