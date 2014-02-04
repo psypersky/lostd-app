@@ -1,34 +1,19 @@
 'use strict';
 
-define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database, DbListMixin) {
+define(['assert', 'react', 'database', 'widgets/contact_selector'], function(assert, React, Database, ContactSelector) {
 
     return React.createClass({
         displayName: 'AmountAdder',
-
-        mixins: [DbListMixin('contact')],
 
         getInitialState: function() {
             return { selectedContact: null,  done: false, isSubmitting: false, error: null };
         },
 
-        onContactChange: function() {
-
-            var selected = this.refs['contactDropDown'].getDOMNode();
-            var contactId = selected.options[selected.selectedIndex].value;
-
-            if (contactId === 'NA')
-                contactId = null;
-
-            this.setState({ selectedContact: contactId });
-
+        onContactChange: function(contact) {
+            this.setState({ selectedContact: contact });
         },
 
         handleAdd: function() {
-
-            if (!this.state['selectedContact']) {
-                this.setState( { isSubmitting: false, error: 'No contact has been selected' });
-                return false;
-            }
 
             var out = this.refs['outgoing'].getDOMNode().checked;
             var inc = this.refs['incoming'].getDOMNode().checked;
@@ -38,7 +23,8 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
                 this.setState( { isSubmitting: false, error: 'No direction has been selected '});
                 return false;
             }
-            var contact = this.state['selectedContact'];
+            var contact = this.state['selectedContact']._id;
+            assert(contact);
             var direction = out ? 'outgoing' : 'incoming';
             var amount = parseFloat(this.refs['amount'].getDOMNode().value);
             var currency = this.refs['currency'].getDOMNode().value;
@@ -48,7 +34,7 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
             this.setState({ isSubmitting: true, error: null });
 
             var self = this;
-            Database.addDebt(this.state['selectedContact'], direction, amount, currency, description, function(err, response) {
+            Database.addDebt(this.state['selectedContact']._id, direction, amount, currency, description, function(err) {
                 if (!self.isMounted()) return;
 
                 if (err) {
@@ -61,31 +47,12 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
             return false;
         },
 
-        dropDown: function() {
-            var self = this;
-            var list = Object.keys(self.state.dbList).map(function (k) {
-                var value = self.state.dbList[k];
-
-                return React.DOM.option({ key: k, value: k }, value.name);
-            });
-
-            list.unshift(React.DOM.option({ key: 'NA', value: 'NA' }, '-Select a Contact-'));
-
-            return React.DOM.select({ ref: 'contactDropDown', onChange: this.onContactChange, required: true }, list);
-        },
-
         render: function() {
 
             if (this.state.done)
                 return React.DOM.p(null, 'Debt Added!');
 
-            var selectedName;
-            if (this.state['selectedContact']) {
-                var contact = this.state.dbList[this.state['selectedContact']];
-                selectedName = contact ? contact.name : '...';
-            } else {
-                selectedName = '...';
-            }
+            var selectedName = this.state['selectedContact'] ? this.state['selectedContact'].name : '...';
 
             return (
                  React.DOM.form({ id: 'adder', onSubmit: this.handleAdd },
@@ -94,7 +61,7 @@ define(['react', 'database', 'widgets/db_list_mixin'], function(React, Database,
                     React.DOM.table(null,
                         React.DOM.tr(null,
                             React.DOM.td(null, 'Contact:'),
-                            React.DOM.td(null, this.dropDown())
+                            React.DOM.td(null, ContactSelector({ onSelectedChange: this.onContactChange }))
                         ),
                         React.DOM.tr(null,
                             React.DOM.td(null, 'Direction:'),
