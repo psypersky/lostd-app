@@ -51,7 +51,9 @@ define(['database', 'react', 'settings'], function(Database, React, Settings) {
                     )
                 ),
                 React.DOM.hr(null),
-                React.DOM.input({ type: 'button', value: 'Clear all local data!', onClick: this.clear })
+                React.DOM.input({ type: 'button', value: 'Clear all local data!', onClick: this.clear }),
+                React.DOM.br(null),
+                React.DOM.input({ type: 'button', value: 'Delete all data, local and remote!', onClick: this.deleteAll })
 			);
 		},
 
@@ -59,6 +61,12 @@ define(['database', 'react', 'settings'], function(Database, React, Settings) {
             Database.destroy(function(err) {
                console.log('Database destroyed!! ', err);
             });
+        },
+
+        deleteAll: function() {
+            Database.deleteAll(function(err, count) {
+                console.log('All documents deleted ', err, count);
+            })
         }
 	});
 

@@ -1,6 +1,6 @@
 'use strict';
 
-define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
+define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Settings) {
 
     var db = new PouchDb('lostd');
 
@@ -72,6 +72,20 @@ define(['pouchdb-nightly', 'settings'], function(PouchDb, Settings) {
                 console.log('Result of destroy... ', err, response);
                 db = new PouchDb('lostd');
                 callback(err);
+            });
+        },
+
+        deleteAll: function(callback) {
+            db.allDocs({include_docs: true }, function (err, response) {
+                console.log('All docs: ', err, response);
+                assert(response['total_rows'] === response.rows.length);
+
+                var docs = response.rows.map(function (x) {
+                    x.doc['_deleted'] = true;
+                    return x.doc;
+                });
+
+                db.bulkDocs({ docs: docs }, callback);
             });
         },
 
