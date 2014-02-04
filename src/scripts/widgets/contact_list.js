@@ -57,8 +57,6 @@ define(['assert', 'react', 'widgets/contact', 'widgets/query_mixin'], function(a
                 if (!contact)
                     return console.warn('Could not find any contact for ', id, ' but have debts for it ', currencies);
 
-                console.log(contactInfo[id]);
-
                 list.push(Contact({ key: contact._id, object: contact, currencies: currencies }));
             });
 
