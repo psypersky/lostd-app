@@ -1,34 +1,40 @@
 'use strict';
 
-define(['react', 'widgets/db_list_mixin'], function(React, DbListMixin) {
+define(['react', 'widgets/query_mixin'], function(React, QueryMixin) {
 
     return React.createClass({
         displayName: 'DebtList',
 
-        mixins: [DbListMixin('debt')],
+        mixins: [QueryMixin(function(doc) {
+            if (doc.type === 'debt')
+                emit(doc._id, doc);
+            })],
 
         render: function() {
 
             var self = this;
 
-            if (this.state.dbListLoaded && Object.keys(self.state.dbList).length === 0) {
-                return React.DOM.p(null,
-                    'You have no debts! Perhaps you should add some!'
-                );
-            }
+            var list = [];
 
-            var list = Object.keys(self.state.dbList).map(function (k) {
-                var value = self.state.dbList[k];
+            this.forEachKV(function(key, value) {
 
-                return React.DOM.tr({ key: k },
+                list.push(React.DOM.tr({ key: key },
                     React.DOM.td(null, value.contact),
                     React.DOM.td(null, value.direction),
                     React.DOM.td(null, value.amount),
                     React.DOM.td(null, value.currency),
                     React.DOM.td(null, value.description)
-                );
+                ));
+
             });
 
+
+            if (this.state.ready && list.length === 0) {
+                return React.DOM.p(null,
+                    'You have no debts! Perhaps you should add some!'
+                );
+            }
+            
             list.unshift(React.DOM.tr({ key: 'header' },
                 React.DOM.th(null, 'Contact'),
                 React.DOM.th(null, 'Direction'),
