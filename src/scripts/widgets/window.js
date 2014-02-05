@@ -3,13 +3,13 @@
 define(['react','pouchdb-nightly',
     'database', 'settings',
     'widgets/contact_list', 'widgets/contact_adder',
-    'widgets/debt_adder', 'widgets/debt_list',
+    'widgets/record_adder', 'widgets/record_list',
     'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login', 'widgets/settings_logout'
 ],
     function(React, PouchDB
         , Database, Settings
         , ContactList, ContactAdder
-        , DebtAdder, DebtList
+        , RecordAdder, RecordList
         , SettingsOverview, SettingsRegister, SettingsAdvanced, SettingsLogin, SettingsLogout
         , QueryMixin) {
 
@@ -63,7 +63,7 @@ define(['react','pouchdb-nightly',
 				case 'contacts':
 					return [['name', 'By Name']
 						   ,['add', 'Create a contact']];
-				case 'debt':
+				case 'records':
 					return [['add', 'Add']
 						   ,['list', 'List']];
 				case 'payment':
@@ -110,12 +110,12 @@ define(['react','pouchdb-nightly',
 							return ContactAdder(null);
 					}
 					break;
-                case 'debt':
+                case 'records':
                     switch (this.state.side) {
                         case 'add':
-                            return DebtAdder(null);
+                            return RecordAdder(null);
                         case 'list':
-                            return DebtList(null);
+                            return RecordList(null);
                     }
                 case 'payment':
                     switch (this.state.side) {
@@ -150,7 +150,7 @@ define(['react','pouchdb-nightly',
 					React.DOM.h1(null, 'Lostd App'),		
 					React.DOM.ul({ id: 'categories' },
 						React.DOM.li(this.mkProperty('contacts'), 'Contacts'),
-						React.DOM.li(this.mkProperty('debt'), 'Debt'),
+						React.DOM.li(this.mkProperty('records'), 'Records'),
 						React.DOM.li(this.mkProperty('payment'), 'Payment'),
 						React.DOM.li(this.mkProperty('settings'), 'Settings')
 					),

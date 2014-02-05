@@ -163,12 +163,12 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
                 callback);
         },
 
-        addDebt: function(contact, direction, amount, currency, description, callback) {
+        addRecord: function(contact, record_type, amount, currency, description, callback) {
             db.post(
                 {
-                    type: 'debt',
+                    type: 'record',
                     contact: contact,
-                    direction: direction,
+                    record_type: record_type,
                     amount: amount,
                     currency: currency,
                     description: description,

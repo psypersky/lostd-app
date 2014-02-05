@@ -25,7 +25,7 @@ define(['react', 'database'], function(React, Database) {
                 if (value > 0)
                     credit.push(React.DOM.p({ key: currency }, currency, ': ', value));
                 else if (value < 0)
-                    debit.push(React.DOM.p({ key: currency }, currency, ': ', -1 * value));
+                    debit.push(React.DOM.p({ key: currency }, currency, ': ', -1*value));
             }
 
             function sortByKey(a, b) {
@@ -35,9 +35,6 @@ define(['react', 'database'], function(React, Database) {
 
             credit.sort(sortByKey);
             debit.sort(sortByKey);
-
-            var owesYouWidget = null;
-
 
             return React.DOM.div({ className: 'account' },
                 React.DOM.h3(null, this.props.object.name),
