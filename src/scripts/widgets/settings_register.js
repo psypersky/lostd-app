@@ -1,6 +1,6 @@
 'use strict';
 
-define(['database', 'react', 'settings', 'json_req', 'widgets/input_username'], function(Database, React, Settings, JsonReq, InputUsername) {
+define(['database', 'crypto', 'react', 'settings', 'json_req', 'widgets/input_username'], function(Database, Crypto, React, Settings, JsonReq, InputUsername) {
 
 	return React.createClass({
 		displayName: 'SettingsRegister',
@@ -62,6 +62,8 @@ define(['database', 'react', 'settings', 'json_req', 'widgets/input_username'], 
 				return false;
 			}
 
+            var passwordHash = Crypto.hash(username + '/' + password);
+
 			var email = this.refs.email.getDOMNode().value.trim();
 
 			this.setState({ error: null, inProgress: 'Asking federation to provision a new account and database...' });
@@ -73,7 +75,7 @@ define(['database', 'react', 'settings', 'json_req', 'widgets/input_username'], 
 			var to = federation + '/api/create_user';
 			var self = this;
 
-			JsonReq.post(to, { username: username, password: password, email: email }, function(err, response) {
+			JsonReq.post(to, { username: username, password: passwordHash, email: email }, function(err, response) {
 
                 if (err) {
                     console.error('Got error: ', err);

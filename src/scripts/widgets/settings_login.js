@@ -1,6 +1,6 @@
 'use strict';
 
-define(['database', 'react', 'settings', 'json_req', 'widgets/input_username'], function(Database, React, Settings, JsonReq, InputUsername) {
+define(['crypto', 'database', 'react', 'settings', 'json_req', 'widgets/input_username'], function(Crypto, Database, React, Settings, JsonReq, InputUsername) {
 
     return React.createClass({
         displayName: 'SettingsLogin',
@@ -52,6 +52,8 @@ define(['database', 'react', 'settings', 'json_req', 'widgets/input_username'], 
             var username = this.refs.username.getDOMNode().value.trim();
             var password = this.refs.password.getDOMNode().value;
 
+            var passwordHash = Crypto.hash(username + '/' + password);
+
             this.setState({ error: null, inProgress: 'Logging into lostd federation!' });
 
             var federation = Settings.get('federation_server');
@@ -60,7 +62,7 @@ define(['database', 'react', 'settings', 'json_req', 'widgets/input_username'], 
 
             var to = federation + '/api/login';
             var self = this;
-            JsonReq.post(to, { username: username, password: password }, function(err, response) {
+            JsonReq.post(to, { username: username, password: passwordHash }, function(err, response) {
 
                 if (err) {
                     console.error('Got error: ', err);
