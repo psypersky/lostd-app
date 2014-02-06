@@ -121,7 +121,7 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
             var remaining = 2;
             var lastErr;
 
-            db.replicate.from(dbUrl, function(err) {
+            db.replicate.from(dbUrl, { batch_size: 500 }, function(err) {
                 console.log('Finished importing from ', dbUrl);
 
                 Settings.set('last_import', new Date());
@@ -132,7 +132,7 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
                     lastErr = err;
             });
 
-            db.replicate.to(dbUrl, function(err) {
+            db.replicate.to(dbUrl, { batch_size: 500 }, function(err) {
                 console.log('Finished exporting to ', dbUrl);
 
                 Settings.set('last_export', new Date());

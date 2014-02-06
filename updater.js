@@ -61,7 +61,7 @@ function sreplace(str, find, replace) {
 
 contents = contents.replace(/\>\s+\</g, '><');
 contents = sreplace(contents, '<link rel="stylesheet" type="text/css" href="style.css" />', '<style type="text/css">' + css + '</style>');
-contents = sreplace(contents, '<script data-main="scripts/main" src="scripts/require.js" /></script>', '<script type="text/javascript" src="' + jsHash + '.js" ></script>');
+contents = sreplace(contents, '<script data-main="scripts/main" src="scripts/require.js"></script>', '<script type="text/javascript" src="' + jsHash + '.js"></script>');
 contents = contents.replace(/\s+/g, ' ');
 
 fs.writeFileSync('./build/index.html', contents);

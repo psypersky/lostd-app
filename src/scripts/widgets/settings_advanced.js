@@ -1,6 +1,6 @@
 'use strict';
 
-define(['database', 'react', 'settings'], function(Database, React, Settings) {
+define(['crypto', 'database', 'react', 'settings'], function(Crypto, Database, React, Settings) {
 
 	return React.createClass({
 		displayName: 'SettingsAdvanced',
