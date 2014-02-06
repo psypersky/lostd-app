@@ -62,7 +62,7 @@ define(['database', 'crypto', 'react', 'settings', 'json_req', 'widgets/input_us
 				return false;
 			}
 
-            var passwordHash = Crypto.hash(username + '/' + password);
+            var passwordHash = Crypto.passwordHash(username, password);
 
 			var email = this.refs.email.getDOMNode().value.trim();
 

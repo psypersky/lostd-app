@@ -52,7 +52,7 @@ define(['crypto', 'database', 'react', 'settings', 'json_req', 'widgets/input_us
             var username = this.refs.username.getDOMNode().value.trim();
             var password = this.refs.password.getDOMNode().value;
 
-            var passwordHash = Crypto.hash(username + '/' + password);
+            var passwordHash = Crypto.passwordHash(username, password);
 
             this.setState({ error: null, inProgress: 'Logging into lostd federation!' });
 

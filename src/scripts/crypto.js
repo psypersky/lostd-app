@@ -8,6 +8,9 @@ define(['sjcl'], function(sjcl) {
     }
 
     return {
-        hash: hash
+        hash: hash,
+        passwordHash: function(username, password) {
+            return hash(username + '/' + password).substring(0,12);
+        }
     };
 });
