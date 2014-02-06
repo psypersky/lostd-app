@@ -2,13 +2,13 @@
 
 define(['react','pouchdb-nightly',
     'database', 'settings',
-    'widgets/contact_list', 'widgets/contact_adder',
-    'widgets/record_adder', 'widgets/record_list',
+	'widgets/contact_list', 'widgets/contact_adder', 'widgets/contact_detail',
+	'widgets/record_adder', 'widgets/record_list',
     'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login', 'widgets/settings_logout'
 ],
     function(React, PouchDB
         , Database, Settings
-        , ContactList, ContactAdder
+        , ContactList, ContactAdder, ContactDetail
         , RecordAdder, RecordList
         , SettingsOverview, SettingsRegister, SettingsAdvanced, SettingsLogin, SettingsLogout
         , QueryMixin) {
@@ -105,9 +105,13 @@ define(['react','pouchdb-nightly',
 				case 'contacts':
 					switch(this.state.side) {
 						case 'name':
-							return ContactList(null);
+							return ContactList({contactClicked: function(contact) {
+								self.setState({ side: 'contact_details', which_contact: contact })
+							}});
 						case 'add':
 							return ContactAdder(null);
+						case 'contact_details':
+							return ContactDetail({ contact: self.state.which_contact });
 					}
 					break;
                 case 'records':

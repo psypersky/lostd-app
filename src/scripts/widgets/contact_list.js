@@ -15,6 +15,10 @@ define(['assert', 'react', 'widgets/contact', 'widgets/query_mixin'], function(a
 
         mixins: [mixin],
 
+        propTypes: {
+            contactClicked: React.PropTypes.func.isRequired
+        },
+        
         render: function() {
             var self = this;
 
@@ -54,7 +58,17 @@ define(['assert', 'react', 'widgets/contact', 'widgets/query_mixin'], function(a
                 if (!contact)
                     return console.warn('Could not find any contact for ', id, ' but have records for it ', currencies);
 
-                list.push(Contact({ key: contact._id, object: contact, currencies: currencies }));
+                list.push(
+                    Contact(
+                        {
+                            key: contact._id,
+                            object: contact,
+                            currencies: currencies,
+                            onClick: function() {
+                                self.props.contactClicked(contact)
+                            }
+                        }
+                    ));
             });
 
             var component;
