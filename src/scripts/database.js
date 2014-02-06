@@ -160,7 +160,12 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
                     description: description,
                     created: new Date()
                 },
-                callback);
+                callback
+            );
+        },
+
+        updateContact: function(contact, callback) {
+            db.put(contact, callback)
         },
 
         addRecord: function(contact, record_type, amount, currency, description, callback) {

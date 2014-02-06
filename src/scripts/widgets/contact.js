@@ -10,6 +10,7 @@ define(['react', 'database'], function(React, Database) {
         },
 
         propTypes: {
+            onClick: React.PropTypes.func.isRequired,
             object: React.PropTypes.object.isRequired,
             currencies: React.PropTypes.object.isRequired
         },
@@ -36,7 +37,7 @@ define(['react', 'database'], function(React, Database) {
             credit.sort(sortByKey);
             debit.sort(sortByKey);
 
-            return React.DOM.div({ className: 'account' },
+            return React.DOM.div({ className: 'account', onClick: this.props.onClick },
                 React.DOM.h3(null, this.props.object.name),
                 (this.state.error ? React.DOM.p({ className: 'errorText' }, this.state.error) : null),
                 React.DOM.p(null, this.props.object.description),
