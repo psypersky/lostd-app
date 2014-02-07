@@ -479,9 +479,7 @@ module.exports = function (Pouch) {
         } else {
           if (doc._attachments) {
             for (var key in doc._attachments) {
-              if (doc._attachments.hasOwnProperty(key)) {
-                doc._attachments[key].stub = true;
-              }
+              doc._attachments[key].stub = true;
             }
           }
           call(callback, null, doc);
@@ -1600,12 +1598,16 @@ function HttpPouch(opts, callback) {
 
     var xhr;
     var lastFetchedSeq;
-    var remoteLastSeq = 0;
+    var remoteLastSeq;
+    var pagingCount;
 
     // Get all the changes starting wtih the one immediately after the
     // sequence number given by since.
     var fetch = function (since, callback) {
       params.since = since;
+      if (!opts.continuous && !pagingCount) {
+        pagingCount = remoteLastSeq;
+      }
       params.limit = (!limit || leftToFetch > CHANGES_LIMIT) ?
         CHANGES_LIMIT : leftToFetch;
 
@@ -1669,8 +1671,11 @@ function HttpPouch(opts, callback) {
 
       var resultsLength = res && res.results.length || 0;
 
+      pagingCount -= CHANGES_LIMIT;
+
       var finished = (limit && leftToFetch <= 0) ||
-        (res && res.last_seq >= remoteLastSeq) ||
+        (res && !resultsLength && pagingCount <= 0) ||
+        (resultsLength && res.last_seq === remoteLastSeq) ||
         (opts.descending && lastFetchedSeq !== 0);
 
       if (opts.continuous || !finished) {
@@ -1872,28 +1877,6 @@ function idbError(callback) {
   return function (event) {
     utils.call(callback, errors.error(errors.IDB_ERROR, event.target, event.type));
   };
-}
-
-function isModernIdb() {
-  // check for outdated implementations of IDB
-  // that rely on the setVersion method instead of onupgradeneeded (issue #1207)
-
-  // cache based on appVersion, in case the browser is updated
-  var cacheKey = "_pouch__checkModernIdb_" + (global.navigator && global.navigator.appVersion);
-  var cached = global.localStorage && global.localStorage[cacheKey];
-  if (cached) {
-    return JSON.parse(cached);
-  }
-
-  var dbName = '_pouch__checkModernIdb';
-  var result = global.indexedDB.open(dbName, 1).onupgradeneeded === null; // else undefined
-  if (global.indexedDB.deleteDatabase) {
-    global.indexedDB.deleteDatabase(dbName); // db no longer needed
-  }
-  if (global.localStorage) {
-    global.localStorage[cacheKey] = JSON.stringify(result); // cache
-  }
-  return result;
 }
 
 function IdbPouch(opts, callback) {
@@ -2136,9 +2119,7 @@ function IdbPouch(opts, callback) {
         }
 
         for (var key in docInfo.data._attachments) {
-          if (docInfo.data._attachments.hasOwnProperty(key)) {
-            preprocessAttachment(docInfo.data._attachments[key], attachmentProcessed);
-          }
+          preprocessAttachment(docInfo.data._attachments[key], attachmentProcessed);
         }
       });
 
@@ -2436,9 +2417,7 @@ function IdbPouch(opts, callback) {
             doc.doc._conflicts = merge.collectConflicts(metadata);
           }
           for (var att in doc.doc._attachments) {
-            if (doc.doc._attachments.hasOwnProperty(att)) {
-              doc.doc._attachments[att].stub = true;
-            }
+            doc.doc._attachments[att].stub = true;
           }
         }
         if ('keys' in opts) {
@@ -2681,7 +2660,7 @@ function IdbPouch(opts, callback) {
 }
 
 IdbPouch.valid = function () {
-  return global.indexedDB && isModernIdb();
+  return typeof global !== 'undefined' && !!global.indexedDB;
 };
 
 IdbPouch.destroy = utils.toPromise(function (name, opts, callback) {
@@ -2942,11 +2921,11 @@ function webSqlPouch(opts, callback) {
       }
 
       var docv = 0;
+      var recv = 0;
 
       docInfos.forEach(function (docInfo) {
         var attachments = docInfo.data && docInfo.data._attachments ?
           Object.keys(docInfo.data._attachments) : [];
-        var recv = 0;
 
         if (!attachments.length) {
           return done();
@@ -2960,9 +2939,7 @@ function webSqlPouch(opts, callback) {
         }
 
         for (var key in docInfo.data._attachments) {
-          if (docInfo.data._attachments.hasOwnProperty(key)) {
-            preprocessAttachment(docInfo.data._attachments[key], processedAttachment);
-          }
+          preprocessAttachment(docInfo.data._attachments[key], processedAttachment);
         }
       });
 
@@ -3236,9 +3213,7 @@ function webSqlPouch(opts, callback) {
                 doc.doc._conflicts = merge.collectConflicts(metadata);
               }
               for (var att in doc.doc._attachments) {
-                if (doc.doc._attachments.hasOwnProperty(att)) {
-                  doc.doc._attachments[att].stub = true;
-                }
+                doc.doc._attachments[att].stub = true;
               }
             }
             if ('keys' in opts) {
@@ -3481,52 +3456,39 @@ function PouchDB(name, opts, callback) {
     }
 
     for (var plugin in PouchDB.plugins) {
-      if (PouchDB.plugins.hasOwnProperty(plugin)) {
-        // In future these will likely need to be async to allow the plugin
-        // to initialise
-        var pluginObj = PouchDB.plugins[plugin](db);
-        for (var api in pluginObj) {
-          if (pluginObj.hasOwnProperty(api)) {
-            // We let things like the http adapter use its own implementation
-            // as it shares a lot of code
-            if (!(api in db)) {
-              db[api] = pluginObj[api];
-            }
-          }
+      // In future these will likely need to be async to allow the plugin
+      // to initialise
+      var pluginObj = PouchDB.plugins[plugin](db);
+      for (var api in pluginObj) {
+        // We let things like the http adapter use its own implementation
+        // as it shares a lot of code
+        if (!(api in db)) {
+          db[api] = pluginObj[api];
         }
       }
     }
-
     db.taskqueue.ready(true);
     db.taskqueue.execute(db);
     callback(null, db);
   });
   for (var j in adapter) {
-    if (adapter.hasOwnProperty(j)) {
-      this[j] = adapter[j];
-    }
+    this[j] = adapter[j];
   }
   for (var plugin in PouchDB.plugins) {
-    if (PouchDB.plugins.hasOwnProperty(plugin)) {
-
-      // In future these will likely need to be async to allow the plugin
-      // to initialise
-      var pluginObj = PouchDB.plugins[plugin](this);
-      for (var api in pluginObj) {
-        if (pluginObj.hasOwnProperty(api)) {
-          // We let things like the http adapter use its own implementation
-          // as it shares a lot of code
-          if (!(api in this)) {
-            this[api] = pluginObj[api];
-          }
-        }
+    // In future these will likely need to be async to allow the plugin
+    // to initialise
+    var pluginObj = PouchDB.plugins[plugin](this);
+    for (var api in pluginObj) {
+      // We let things like the http adapter use its own implementation
+      // as it shares a lot of code
+      if (!(api in this)) {
+        this[api] = pluginObj[api];
       }
     }
   }
 }
 
 module.exports = PouchDB;
-
 },{"./adapter":1,"./utils":17}],6:[function(require,module,exports){
 var process=require("__browserify_process");"use strict";
 
@@ -3803,11 +3765,6 @@ function PouchError(opts) {
 PouchError.prototype = new Error();
 
 
-exports.UNAUTHORIZED = new PouchError({
-  status: 401,
-  error: 'unauthorized',
-  reason: "Name or password is incorrect."
-});
 exports.MISSING_BULK_DOCS = new PouchError({
   status: 400,
   error: 'bad_request',
@@ -3908,7 +3865,6 @@ exports.error = function (error, reason, name) {
   CustomPouchError.prototype = error;
   return new CustomPouchError(reason);
 };
-
 },{}],9:[function(require,module,exports){
 // some small shims for es5 just for the features we commonly use
 // some of this is copied from https://github.com/kriskowal/es5-shim/blob/master/es5-shim.js
@@ -4058,35 +4014,31 @@ function extend() {
     if ((options = arguments[i]) != null) {
       // Extend the base object
       for (name in options) {
-        //if (options.hasOwnProperty(name)) {
-        if (!(name in Object.prototype)) {
+        src = target[name];
+        copy = options[name];
 
-          src = target[name];
-          copy = options[name];
+        // Prevent never-ending loop
+        if (target === copy) {
+          continue;
+        }
 
-          // Prevent never-ending loop
-          if (target === copy) {
-            continue;
+        // Recurse if we're merging plain objects or arrays
+        if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
+          if (copyIsArray) {
+            copyIsArray = false;
+            clone = src && isArray(src) ? src : [];
+
+          } else {
+            clone = src && isPlainObject(src) ? src : {};
           }
 
-          // Recurse if we're merging plain objects or arrays
-          if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
-            if (copyIsArray) {
-              copyIsArray = false;
-              clone = src && isArray(src) ? src : [];
+          // Never move original objects, clone them
+          target[name] = extend(deep, clone, copy);
 
-            } else {
-              clone = src && isPlainObject(src) ? src : {};
-            }
-
-            // Never move original objects, clone them
-            target[name] = extend(deep, clone, copy);
-
-          // Don't bring in undefined values
-          } else if (copy !== undefined) {
-            if (!(isArray(options) && isFunction(copy))) {
-              target[name] = copy;
-            }
+        // Don't bring in undefined values
+        } else if (copy !== undefined) {
+          if (!(isArray(options) && isFunction(copy))) {
+            target[name] = copy;
           }
         }
       }
@@ -4204,7 +4156,7 @@ exports.MD5 = function (string) {
     return   wordToHexValue;
   }
 
-  //**	function Utf8Encode(string) removed. Aready defined in pidcrypt_utils.js
+  //**  function Utf8Encode(string) removed. Aready defined in pidcrypt_utils.js
 
   var x = [];
   var k, AA, BB, CC, DD, a, b, c, d;
@@ -4213,7 +4165,7 @@ exports.MD5 = function (string) {
   var S31 = 4, S32 = 11, S33 = 16, S34 = 23;
   var S41 = 6, S42 = 10, S43 = 15, S44 = 21;
 
-  //	string = Utf8Encode(string); #function call removed
+  //  string = Utf8Encode(string); #function call removed
 
   x = convertToWordArray(string);
 
@@ -4687,7 +4639,7 @@ PouchMerge.rootToLeaf = function (tree) {
 module.exports = PouchMerge;
 
 },{"./deps/extend":10}],15:[function(require,module,exports){
-'use strict';
+var process=require("__browserify_process");'use strict';
 
 var PouchUtils = require('./utils');
 var Pouch = require('./index');
@@ -4702,25 +4654,56 @@ function Promise() {
   };
 }
 
+// The RequestManager ensures that only one database request is active at
+// at time, it ensures we dont max out simultaneous HTTP requests and makes
+// the replication process easier to reason about
 
-// A batch of changes to be processed as a unit
-function Batch() {
-  this.seq = 0;
-  this.state = 'start';
-  this.changes = [];
-  this.docs = [];
+function RequestManager(promise) {
+  var queue = [];
+  var api = {};
+  var processing = false;
+
+  // Add a new request to the queue, if we arent currently processing anything
+  // then process it immediately
+  api.enqueue = function (fun, args) {
+    queue.push({fun: fun, args: args});
+    if (!processing) {
+      api.process();
+    }
+  };
+
+  // Process the next request
+  api.process = function () {
+    if (processing || !queue.length || promise.cancelled) {
+      return;
+    }
+    processing = true;
+    var task = queue.shift();
+    process.nextTick(function () {
+      task.fun.apply(null, task.args);
+    });
+  };
+
+  // We need to be notified whenever a request is complete to process
+  // the next request
+  api.notifyRequestComplete = function () {
+    processing = false;
+    api.process();
+  };
+
+  return api;
 }
 
+// TODO: check CouchDB's replication id generation, generate a unique id particular
+// to this replication
 
-// TODO: check CouchDB's replication id generation
-// Generate a unique id particular to this replication
 function genReplicationId(src, target, opts) {
   var filterFun = opts.filter ? opts.filter.toString() : '';
   return '_local/' + PouchUtils.Crypto.MD5(src.id() + target.id() + filterFun);
 }
 
-
 // A checkpoint lets us restart replications from when they were last cancelled
+
 function fetchCheckpoint(src, target, id, callback) {
   target.get(id, function (err, targetDoc) {
     if (err && err.status === 404) {
@@ -4741,14 +4724,11 @@ function fetchCheckpoint(src, target, id, callback) {
   });
 }
 
-
 function writeCheckpoint(src, target, id, checkpoint, callback) {
   function updateCheckpoint(db, callback) {
     db.get(id, function (err, doc) {
       if (err && err.status === 404) {
         doc = {_id: id};
-      } else if (err) {
-        return callback(err);
       }
       doc.last_seq = checkpoint;
       db.put(doc, callback);
@@ -4761,222 +4741,123 @@ function writeCheckpoint(src, target, id, checkpoint, callback) {
   });
 }
 
-
 function replicate(src, target, opts, promise) {
+
+  var requests = new RequestManager(promise);
+  var writeQueue = [];
   var repId = genReplicationId(src, target, opts);
-  var batches = [];     // queue of batches of changes to be processed
-  var pendingBatch = new Batch();
-  var changesCompleted = false;
-  var replicationCompleted = false;
+  var results = [];
+  var completed = false;
+  var pendingRevs = 0;
   var last_seq = 0;
   var continuous = opts.continuous || false;
-  var batch_size = opts.batch_size || 1;
   var doc_ids = opts.doc_ids;
   var result = {
     ok: true,
     start_time: new Date(),
     docs_read: 0,
-    docs_written: 0,
-    errors: []
+    docs_written: 0
   };
 
+  function docsWritten(err, res, len) {
+    if (opts.onChange) {
+      for (var i = 0; i < len; i++) {
+        /*jshint validthis:true */
+        opts.onChange.apply(this, [result]);
+      }
+    }
+    pendingRevs -= len;
+    result.docs_written += len;
+
+    writeCheckpoint(src, target, repId, last_seq, function (err, res) {
+      requests.notifyRequestComplete();
+      isCompleted();
+    });
+  }
 
   function writeDocs() {
-    if (batches[0].docs.length === 0) {
-      // This should never happen:
-      // batch processing continues past onRevsDiff only if there are diffs
-      // and replication is aborted if a get fails.
-      // TODO: throw or log the error
-      return finishBatch();
+    if (!writeQueue.length) {
+      return requests.notifyRequestComplete();
     }
+    var len = writeQueue.length;
+    target.bulkDocs({docs: writeQueue}, {new_edits: false}, function (err, res) {
+      docsWritten(err, res, len);
+    });
+    writeQueue = [];
+  }
 
-    var docs = batches[0].docs;
-    target.bulkDocs({docs: docs}, {new_edits: false}, function (err, res) {
-      if (err) {
-        return abortReplication('target.bulkDocs completed with error', err);
-      }
-
-      result.docs_written += docs.length;
-      finishBatch();
+  function eachRev(id, rev) {
+    src.get(id, {revs: true, rev: rev, attachments: true}, function (err, doc) {
+      result.docs_read++;
+      requests.notifyRequestComplete();
+      writeQueue.push(doc);
+      requests.enqueue(writeDocs);
     });
   }
 
+  function onRevsDiff(diffCounts) {
+    return function (err, diffs) {
+      requests.notifyRequestComplete();
+      if (err) {
+        if (continuous) {
+          promise.cancel();
+        }
+        PouchUtils.call(opts.complete, err, null);
+        return;
+      }
 
-  function onGet(err, doc) {
-    if (promise.cancelled) {
-      return replicationComplete();
-    }
+      // We already have all diffs passed in `diffCounts`
+      if (Object.keys(diffs).length === 0) {
+        for (var docid in diffCounts) {
+          pendingRevs -= diffCounts[docid];
+        }
+        isCompleted();
+        return;
+      }
 
-    if (err) {
-      return abortReplication('src.get completed with error', err);
-    }
+      var _enqueuer = function (rev) {
+        requests.enqueue(eachRev, [id, rev]);
+      };
 
-    result.docs_read++;
-    batches[0].pendingRevs++;
-    batches[0].docs.push(doc);
-    fetchRev();
-  }
-
-
-  function fetchRev() {
-    var diffs = batches[0].diffs;
-
-    if (Object.keys(diffs).length === 0) {
-      writeDocs();
-      return;
-    }
-
-    var id = Object.keys(diffs)[0];
-    var rev = diffs[id].missing.splice(0, 1)[0];
-    if (diffs[id].missing.length === 0) {
-      delete diffs[id];
-    }
-
-    src.get(id, {revs: true, rev: rev, attachments: true}, onGet);
-  }
-
-
-  function abortReplication(reason, err) {
-    result.ok = false;
-    result.errors.push(err);
-    result.end_time = new Date();
-    promise.cancel();
-    batches = [];
-    pendingBatch = new Batch();
-    var error = {
-      status: 500,
-      error: 'Replication aborted',
-      reason: reason,
-      details: err
+      for (var id in diffs) {
+        var diffsAlreadyHere = diffCounts[id] - diffs[id].missing.length;
+        pendingRevs -= diffsAlreadyHere;
+        diffs[id].missing.forEach(_enqueuer);
+      }
     };
-    PouchUtils.call(opts.complete, error, result);
   }
 
-
-  function finishBatch() {
-    writeCheckpoint(src, target, repId, batches[0].seq, function (err, res) {
-      if (err) {
-        return abortReplication('writeCheckpoint completed with error', err);
-      }
-      last_seq = batches[0].seq;
-      PouchUtils.call(opts.onChange, null, result);
-      batches.shift();
-      startNextBatch();
-    });
+  function fetchRevsDiff(diff, diffCounts) {
+    target.revsDiff(diff, onRevsDiff(diffCounts));
   }
-
-  function onRevsDiff(err, diffs) {
-    if (promise.cancelled) {
-      return replicationComplete();
-    }
-
-    if (err) {
-      return abortReplication('target.revsDiff completed with error', err);
-    }
-
-    if (Object.keys(diffs).length === 0) {
-      finishBatch();
-      return;
-    }
-
-    batches[0].diffs = diffs;
-    batches[0].pendingRevs = 0;
-    fetchRev();
-  }
-
-
-  function fetchRevsDiff() {
-    var diff = {};
-    batches[0].changes.forEach(function (change) {
-      diff[change.id] = change.changes.map(function (x) { return x.rev; });
-    });
-
-    target.revsDiff(diff, onRevsDiff);
-  }
-
-
-  function startNextBatch() {
-    if (promise.cancelled) {
-      return replicationComplete();
-    }
-
-    if (batches.length === 0) {
-      if (changesCompleted) {
-        replicationComplete();
-      } else if (pendingBatch.changes.length > 0) {
-        processPendingBatch();
-      }
-      return;
-    }
-
-    if (batches[0].state === 'start') {
-      batches[0].state = 'processing';
-      fetchRevsDiff();
-    }
-  }
-
-
-  function processPendingBatch() {
-    if (pendingBatch.changes.length === 0) {
-      if (changesCompleted && batches.length === 0) {
-        replicationComplete();
-      }
-      return;
-    }
-
-    if (changesCompleted || pendingBatch.changes.length >= batch_size) {
-      batches.push(pendingBatch);
-      pendingBatch = new Batch();
-      startNextBatch();
-    }
-  }
-
-
-  function replicationComplete() {
-    if (!replicationCompleted) {
-      replicationCompleted = true;
-      result.end_time = new Date();
-      return PouchUtils.call(opts.complete, null, result);
-    }
-  }
-
 
   function onChange(change) {
-    if (promise.cancelled) {
-      return replicationComplete();
-    }
-
-    if (replicationCompleted) {
-      // This should never happen
-      // The complete callback has already been called
-      // How to raise an exception in PouchDB?
-      return;
-    }
-
-    pendingBatch.seq = change.seq;
-    pendingBatch.changes.push(change);
-
-    processPendingBatch();
+    last_seq = change.seq;
+    results.push(change);
+    var diff = {};
+    diff[change.id] = change.changes.map(function (x) { return x.rev; });
+    var counts = {};
+    counts[change.id] = change.changes.length;
+    pendingRevs += change.changes.length;
+    requests.enqueue(fetchRevsDiff, [diff, counts]);
   }
 
-
-  function complete(err, result) {
-    changesCompleted = true;
-    if (promise.cancelled) {
-      return replicationComplete();
-    }
-
-    if (err) {
-      return abortReplication('src.changes completed with error', err);
-    }
-
-    processPendingBatch();
+  function complete() {
+    completed = true;
+    isCompleted();
   }
 
+  function isCompleted() {
+    if (completed && pendingRevs === 0) {
+      result.end_time = new Date();
+      PouchUtils.call(opts.complete, null, result);
+    }
+  }
 
   fetchCheckpoint(src, target, repId, function (err, checkpoint) {
+
     if (err) {
-      return abortReplication('fetchCheckpoint completed with error', err);
+      return PouchUtils.call(opts.complete, err);
     }
 
     last_seq = checkpoint;
@@ -4984,11 +4865,9 @@ function replicate(src, target, opts, promise) {
     // Was the replication cancelled by the caller before it had a chance
     // to start. Shouldnt we be calling complete?
     if (promise.cancelled) {
-      return replicationComplete();
+      return;
     }
 
-    // Call changes on the source database, with callbacks to onChange for
-    // each change and complete when done.
     var repOpts = {
       continuous: continuous,
       since: last_seq,
@@ -5016,6 +4895,7 @@ function replicate(src, target, opts, promise) {
       };
     }
   });
+
 }
 
 function toPouch(db, callback) {
@@ -5061,7 +4941,7 @@ exports.replicate = function (src, target, opts, callback) {
   return replicateRet;
 };
 
-},{"./index":13,"./utils":17}],16:[function(require,module,exports){
+},{"./index":13,"./utils":17,"__browserify_process":20}],16:[function(require,module,exports){
 "use strict";
 
 var PouchDB = require("./constructor");
@@ -5124,9 +5004,7 @@ PouchDB.destroy = function (name, opts, callback) {
     }
 
     for (var plugin in PouchDB.plugins) {
-      if (PouchDB.plugins.hasOwnProperty(plugin)) {
-        PouchDB.plugins[plugin]._delete(dbName);
-      }
+      PouchDB.plugins[plugin]._delete(dbName);
     }
     //console.log(dbName + ': Delete Database');
 
@@ -5422,9 +5300,7 @@ exports.filterChange = function (opts) {
       delete change.doc;
     } else {
       for (var att in change.doc._attachments) {
-        if (change.doc._attachments.hasOwnProperty(att)) {
-          change.doc._attachments[att].stub = true;
-        }
+        change.doc._attachments[att].stub = true;
       }
     }
     return true;
@@ -5442,9 +5318,7 @@ exports.processChanges = function (opts, changes, last_seq) {
   changes.forEach(function (change) {
     exports.call(opts.onChange, change);
   });
-  if (!opts.continuous) {
-    exports.call(opts.complete, null, {results: changes, last_seq: last_seq});
-  }
+  exports.call(opts.complete, null, {results: changes, last_seq: last_seq});
 };
 
 // Preprocess documents, parse their revisions, assign an id and a
@@ -5792,13 +5666,9 @@ Promise.prototype.then = function(onFulfilled, onRejected) {
         return this.pending(onFulfilled, onRejected);
     }
 };
-(function(){
-    try {
-        Promise.prototype.catch = function(onRejected) {
-            return this.then(null, onRejected);
-        };
-    } catch(e){}
-}());
+Promise.prototype.catch = function(onRejected) {
+    return this.then(null, onRejected);
+};
 defineNonEnum(Promise.prototype, 'pending', function(onFulfilled, onRejected){
     var self = this;
     return new Promise(function(success,failure){
@@ -5907,11 +5777,11 @@ function drainQueue() {
     var i = 0,
         task,
         innerQueue = handlerQueue;
-	handlerQueue = [];
-	/*jslint boss: true */
-	while (task = innerQueue[i++]) {
-		task();
-	}
+  handlerQueue = [];
+  /*jslint boss: true */
+  while (task = innerQueue[i++]) {
+    task();
+  }
 }
 var nextTick;
 var i = -1;
@@ -6075,7 +5945,10 @@ exports.install = function (t) {
 var pouchCollate = require('pouchdb-collate');
 var Promise = require('lie');
 var collate = pouchCollate.collate;
-var normalizeKey = pouchCollate.normalizeKey;
+var processKey = function (key) {
+  // Stringify keys since we want them as map keys (see #35)
+  return JSON.stringify(pouchCollate.normalizeKey(key));
+};
 // This is the first implementation of a basic plugin, we register the
 // plugin object with pouch and it is mixin'd to each database created
 // (regardless of adapter), adapters can override plugins by providing
@@ -6103,7 +5976,7 @@ function createKeysLookup(keys) {
   var lookup = {};
 
   for (var i = 0, len = keys.length; i < len; i++) {
-    var key = normalizeKey(keys[i]);
+    var key = processKey(keys[i]);
     var val = lookup[key];
     if (typeof val === 'undefined') {
       lookup[key] = i;
@@ -6200,7 +6073,7 @@ function MapReduce(db) {
     var prelimResults = new Array(keys.length);
 
     inputResults.forEach(function (result) {
-      var idx = keysLookup[normalizeKey(result.key)];
+      var idx = keysLookup[processKey(result.key)];
       if (typeof idx === 'number') {
         addAtIndex(idx, result, prelimResults);
       } else { // array of indices
@@ -6225,7 +6098,7 @@ function MapReduce(db) {
 
   function viewQuery(fun, options) {
     /*jshint evil: true */
-
+    var origMap;
     if (!options.skip) {
       options.skip = 0;
     }
@@ -6258,7 +6131,7 @@ function MapReduce(db) {
       }
       if (typeof options.keys !== 'undefined') {
         keysLookup = keysLookup || createKeysLookup(options.keys);
-        if (typeof keysLookup[normalizeKey(key)] === 'undefined') {
+        if (typeof keysLookup[processKey(key)] === 'undefined') {
           return;
         }
       }
@@ -6282,10 +6155,18 @@ function MapReduce(db) {
       }
       results.push(viewRow);
     }
-    // ugly way to make sure references to 'emit' in map/reduce bind to the
-    // above emit
-
-    eval('fun.map = ' + fun.map.toString() + ';');
+    if (typeof fun.map === "function" && fun.map.length === 2) {
+      //save a reference to it
+      origMap = fun.map;
+      fun.map = function (doc) {
+        //call it with the emit as the second argument
+        return origMap(doc, emit);
+      };
+    } else {
+      // ugly way to make sure references to 'emit' in map/reduce bind to the
+      // above emit
+      eval('fun.map = ' + fun.map.toString() + ';');
+    }
     if (fun.reduce) {
       if (builtInReduce[fun.reduce]) {
         fun.reduce = builtInReduce[fun.reduce];
@@ -6439,7 +6320,7 @@ function MapReduce(db) {
       callback = opts;
       opts = {};
     }
-
+    opts = opts || {};
     if (callback) {
       opts.complete = callback;
     }
