@@ -91,6 +91,7 @@ define(['crypto', 'database', 'react', 'settings', 'json_req', 'widgets/input_us
                     // All ok!
 
                     Settings.set('database_url', databaseURL);
+                    Database.restartReplication();
 
                     if (self.isMounted())
                         self.setState({ inProgress: false, done: true });
