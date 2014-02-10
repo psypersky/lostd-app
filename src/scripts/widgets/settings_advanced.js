@@ -13,10 +13,13 @@ define(['crypto', 'database', 'react', 'settings'], function(Crypto, Database, R
 			    Settings.set('federation_server', federationServer);
 			
 			var databaseURL = this.refs['databaseURL'].getDOMNode().value.trim();
-            if (databaseURL.length === 0)
-                Settings.remove('database_url');
-            else
-                Settings.set('database_url', databaseURL);
+            if (databaseURL !== Settings.get('database_url')) {
+                if (databaseURL.length === 0)
+                    Settings.remove('database_url');
+                else
+                    Settings.set('database_url', databaseURL);
+                Database.restartReplication();
+            }
 
 			return false;
 		},
