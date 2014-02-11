@@ -20,8 +20,8 @@ define(['assert', 'sjcl'], function(assert, sjcl) {
 
 
     var curve = sjcl.ecc.curves.k256;
-    function generateKeys() {
-        return sjcl.ecc.ecdsa.generateKeys(curve);
+    function generateKeys(privateKey) { // privateKey is optional
+        return sjcl.ecc.ecdsa.generateKeys(curve, undefined, privateKey);
     }
 
     function format(bits) {
@@ -44,8 +44,9 @@ define(['assert', 'sjcl'], function(assert, sjcl) {
         return new sjcl.ecc.ecdsa.publicKey(curve, parse(str));
     }
 
-    function parsePrivateKey(str) {
-        throw new Error('TODO: parsePrivateKey');
+    function parseKeysFromPrivateKey(str) {
+        var exponent = parse(str);
+        return generateKeys(exponent);
     }
 
     // Intrusively signs an object. Adds a new 'signature' field
@@ -79,7 +80,6 @@ define(['assert', 'sjcl'], function(assert, sjcl) {
             var hash = sjcl.hash.sha256.hash(JSON.stringify(obj));
             obj['signature'] = signature; // Re-add it
 
-
             return pub.verify(hash, parse(signature.data));
         } catch (ex) {
             console.warn('Invalid signature of ', obj, ' gave exception ', ex);
@@ -88,11 +88,18 @@ define(['assert', 'sjcl'], function(assert, sjcl) {
     }
 
     return {
+        encryptPrivateKey: function(password, sec) {
+            var fmt = formatPrivateKey(sec);
+            return sjcl.encrypt(password, fmt);
+        },
+        decryptKeysFromPrivateKey: function(password, encryptedKey) {
+            var fmt = sjcl.decrypt(password, encryptedKey);
+            return parseKeysFromPrivateKey(fmt);
+        },
         generateKeys: generateKeys,
         formatPublicKey: formatPublicKey,
         formatPrivateKey: formatPrivateKey,
         parsePublicKey: parsePublicKey,
-        parsePrivateKey: parsePrivateKey,
         hash: hash,
         signObject: signObject,
         isValidSignatureObject: isValidSignatureObject,

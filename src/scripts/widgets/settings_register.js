@@ -64,6 +64,11 @@ define(['database', 'crypto', 'react', 'settings', 'json_req', 'widgets/input_us
 
             var passwordHash = Crypto.passwordHash(username, password);
 
+            var keys = Crypto.generateKeys();
+            var encryptedPrivate = Crypto.encryptPrivateKey(password, keys.sec);
+            var publicKey = Crypto.formatPublicKey(keys.pub);
+
+
 			var email = this.refs.email.getDOMNode().value.trim();
 
 			this.setState({ error: null, inProgress: 'Asking federation to provision a new account and database...' });
@@ -75,7 +80,7 @@ define(['database', 'crypto', 'react', 'settings', 'json_req', 'widgets/input_us
 			var to = federation + '/api/create_user';
 			var self = this;
 
-			JsonReq.post(to, { username: username, password: passwordHash, email: email }, function(err, response) {
+			JsonReq.post(to, { username: username, password: passwordHash, email: email, public_key: publicKey, private_key: encryptedPrivate }, function(err, response) {
 
                 if (err) {
                     console.error('Got error: ', err);
@@ -87,6 +92,7 @@ define(['database', 'crypto', 'react', 'settings', 'json_req', 'widgets/input_us
 
                 console.log('Great success!! Got response from federation: ', response);
 
+                Settings.keys = keys;
                 Database.cancel(); // Perhaps being a little too defensive..
 
                 var databaseURL = response['database_url'];

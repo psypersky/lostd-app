@@ -10,6 +10,7 @@ define(['database', 'react', 'settings'], function(Database, React, Settings) {
         },
 
         onLogout: function() {
+
             Database.cancel();
 
             var self = this;
@@ -23,6 +24,7 @@ define(['database', 'react', 'settings'], function(Database, React, Settings) {
                 }
 
                 self.setState({ inProgress: 'Removing local data..' });
+                Settings.keys = undefined;
                 Settings.remove('database_url');
                 Settings.remove('last_import');
                 Settings.remove('last_export');

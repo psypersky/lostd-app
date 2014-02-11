@@ -58,7 +58,9 @@ define(function() {
         }
     }
 
+
     return {
+        keys: null, // Store public/private keys
         get: get,
         getOrElse: getOrElse,
         set: set,

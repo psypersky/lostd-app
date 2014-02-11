@@ -66,15 +66,13 @@ define(['crypto', 'database', 'react', 'settings', 'json_req', 'widgets/input_us
 
                 if (err) {
                     console.error('Got error: ', err);
-                    err = err.toString();
                     if (self.isMounted())
                         self.setState({ error: 'Error: ' + err, inProgress: false });
                     return;
                 }
 
-                console.log('Great success!! Got response from federation: ', response);
-
                 Database.cancel(); // Perhaps being a little too defensive..
+                Settings.keys = Crypto.decryptKeysFromPrivateKey(password, response['private_key']);
 
                 var databaseURL = response['database_url'];
 
