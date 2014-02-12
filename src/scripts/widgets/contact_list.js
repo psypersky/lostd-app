@@ -1,6 +1,7 @@
 'use strict';
 
-define(['assert', 'react', 'widgets/contact_row', 'widgets/query_mixin'], function(assert, React, ContactRow, QueryMixin) {
+define(['assert', 'react', 'widgets/contact_row', 'widgets/query_mixin', 'util'],
+    function(assert, React, ContactRow, QueryMixin, Util) {
 
     var mixin = QueryMixin(function(doc, emit) {
         if (doc.type === 'contact')
@@ -90,7 +91,8 @@ define(['assert', 'react', 'widgets/contact_row', 'widgets/query_mixin'], functi
             thTotals.push(React.DOM.th({ key: 'th_' + 'total' }, 'Total'));
             for( var currency in allCurrencies){
                 thTitles.push(React.DOM.th({ key: 'th_' + currency }, currency));
-                thTotals.push(React.DOM.th({ key: 'th_' + currency + 'qty' }, allCurrencies[currency]));
+                thTotals.push(React.DOM.th({ key: 'th_' + currency + 'qty' }, Util.formatNumber(allCurrencies[currency])));
+            
             }
 
             return React.DOM.div({ className: 'contact_list' },
