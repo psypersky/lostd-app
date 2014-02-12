@@ -56,6 +56,7 @@ define(['assert', 'react', 'widgets/contact_row', 'widgets/query_mixin', 'util']
                 }
             });
 
+            //Create an array of tr's for each contact in list
             var list = [];
             Object.keys(contactInfo).forEach(function(id) {
                 var contact = contactInfo[id][0];
@@ -78,30 +79,39 @@ define(['assert', 'react', 'widgets/contact_row', 'widgets/query_mixin', 'util']
                     ));
             });
 
-            var component;
+            var content;
             if (this.state.ready && list.length === 0) {
-                component = React.DOM.p(null, 'You have no contacts! You should add one!');
-            } else {
-                component = list;
-            }
+                content = React.DOM.p(null, 'You have no contacts! You should add one!');
+            } else { //Create a table with the totals of each currency for each user
+                
+                var totals;
+                var tableHead;
 
-            var thTitles = [];
-            thTitles.push(React.DOM.th({ key: 'th_' + 'empty_title' }, ''));
-            var thTotals = [];
-            thTotals.push(React.DOM.th({ key: 'th_' + 'total' }, 'Total'));
-            for( var currency in allCurrencies){
-                thTitles.push(React.DOM.th({ key: 'th_' + currency }, currency));
-                thTotals.push(React.DOM.th({ key: 'th_' + currency + 'qty' }, Util.formatNumber(allCurrencies[currency])));
-            
+                var thTitles = [];
+                var thTotals = [];
+                
+                for ( var currency in allCurrencies) {
+                    thTitles.push(React.DOM.th({ key: 'th_' + currency }, currency));
+                    thTotals.push(React.DOM.th({ key: 'th_' + currency + 'qty' }, Util.formatNumber(allCurrencies[currency])));
+                }
+                if (thTitles.length > 0) {
+                    thTitles.unshift(React.DOM.td({ key: 'empty_title' }, ''));
+                    thTotals.unshift(React.DOM.th({ key: 'total' }, 'Total:'));
+
+                    tableHead = React.DOM.thead(null,
+                                        React.DOM.tr(null, thTitles));
+                    totals = React.DOM.tr({ id: 'total_row'}, thTotals);
+                }
+                
+                content = React.DOM.table(null,
+                                    tableHead,
+                                    React.DOM.tbody(null, list),
+                                    totals
+                                 );
             }
 
             return React.DOM.div({ className: 'contact_list' },
-                        React.DOM.table(null,
-                            React.DOM.thead(null,
-                                React.DOM.tr(null, thTitles),
-                                React.DOM.tr(null, thTotals)),
-                            React.DOM.tbody(null, component)
-                        )
+                        content
                     );
         }
     });

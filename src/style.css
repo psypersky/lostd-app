@@ -98,7 +98,7 @@ h1, h2, h3 {
     min-width: 80%;
 }
 
-/* Contact List */
+/*  Contact List  */
 
 /*Head*/
 .contact_list table thead tr{
@@ -115,10 +115,17 @@ h1, h2, h3 {
 }
 
 /*All*/
-.contact_list {
+
+.contact_list table {
+    margin-top: 50px;
+    border-collapse:collapse;
+    border: 1px solid grey;
+    min-width: 10%;
+    text-align: left;
+
 }
 
-.contact_list td{
+.contact_list td, .contact_list th{
     min-width: 80px;
     padding: 5px;
 }
@@ -127,13 +134,8 @@ h1, h2, h3 {
     border-left: 1px solid #bdbdbd;
 }
 
-.contact_list table {
-    margin-top: 50px;
-    border-collapse:collapse;
-    border: 1px solid grey
-}
 
-/* Contact Details */
+/*  Contact Details  */
 
 .currencies_table {
     width: 90%;
@@ -156,4 +158,8 @@ h1, h2, h3 {
 
 .currency_details td {
     padding: 5px 20px;
+}
+
+#total_row {
+    border-top: 1px solid black;
 }
