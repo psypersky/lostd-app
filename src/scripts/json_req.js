@@ -32,7 +32,10 @@ define(function() {
 		}
 
 		console.log('Sending request to: ', to);
-		req.open('POST', to);
+
+        if (verb === 'GET' && params.length > 0)
+            to += '?' + params;
+		req.open(verb, to);
         req.responseType = 'json';
 		req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 		req.setRequestHeader('Accept', 'application/json');
@@ -40,6 +43,7 @@ define(function() {
 	}
 
 	return {
+        get: function(to, callback) { send('GET', to, {}, callback); },
 		post: function(to, data, callback) { send('POST', to, data, callback); }
 	};
 

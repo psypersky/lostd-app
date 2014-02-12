@@ -11,7 +11,7 @@ define(['assert', 'react', 'widgets/contact_row', 'widgets/query_mixin'], functi
     });
 
     return React.createClass({
-        displayName: 'AccountList',
+        displayName: 'ContactList',
 
         mixins: [mixin],
 

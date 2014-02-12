@@ -157,11 +157,13 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
             });
         },
 
-        addContact: function(name, description, callback) {
+        addContact: function(name, description, lostdAddress, publicKey, callback) {
             db.post(
                 {
                     type: 'contact',
                     name: name,
+                    lostd_address: lostdAddress,
+                    public_key: publicKey,
                     description: description,
                     created: Date.now()
                 },

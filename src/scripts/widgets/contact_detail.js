@@ -29,10 +29,12 @@ define(['assert', 'react', 'database', 'widgets/query_mixin'], function(assert, 
             return function() {
                 self.props.contact[what] = self.refs[what].getDOMNode().value.trim();
                 Database.updateContact(self.props.contact, function (err, response) {
-                    if (err) return console.error('Caught error updating contact: ', err);
-
                     if (self.isMounted())
                         self.setState({ editing: null });
+
+                    if (err)
+                        return console.error('Caught error updating contact: ', err);
+
                     self.props.contact._rev = response.rev;
                 });
                 return false;
@@ -44,19 +46,20 @@ define(['assert', 'react', 'database', 'widgets/query_mixin'], function(assert, 
             this.setState({ showingCurrency: toSet });
         },
 
-        handleClicks: function(e) {
-            var className = e.target.className;
+        stopPropagation: function(event) {
+            event.stopPropagation();
+        },
 
-            switch(className){
-            case 'description':
-                    this.setState({ editing: 'description' });
-                    break;
-                case 'name':
-                    this.setState({ editing: 'name' });
-                    break;
-                default:
-                    this.setState({ editing: null });
+        setEditing: function(what) {
+            var self = this;
+            return function(event) {
+                self.setState({ editing: what });
+                event.stopPropagation();
             }
+        },
+
+        clearEditing: function() {
+            this.setState({ editing: null });
         },
 
         render: function() {
@@ -99,28 +102,53 @@ define(['assert', 'react', 'database', 'widgets/query_mixin'], function(assert, 
             /* Name field */
             var name; 
             if(this.state.editing === 'name') {
-                name = React.DOM.form({ id: 'name', onSubmit: this.handleUpdate('name')},
-                    React.DOM.input({ autoFocus: true, type: 'text', placeholder: 'Name', ref: 'name', className: 'name', required: true, defaultValue: contact.name}),
+                name = React.DOM.form({ onClick: this.stopPropagation, onSubmit: this.handleUpdate('name') },
+                    React.DOM.input({ autoFocus: true, type: 'text', placeholder: 'Name', ref: 'name', required: true, defaultValue: contact.name}),
                     React.DOM.input({ type: 'submit', value: 'Save!', className: 'name' })
                 );
             } else {
-                name = React.DOM.div(null, 
-                    React.DOM.h3({ ref: 'name', className: 'name'}, contact.name)
-                );
+                name = React.DOM.h3({ onClick: this.setEditing('name') }, contact.name);
             }
 
             /* Description Field */
             var description;
-            if(this.state.editing === 'description' || this.props.contact.description.trim().length === 0) {
-                description = React.DOM.form({ id: 'description', onSubmit: this.handleUpdate('description')},
-                    React.DOM.h3({ className: 'description' }, 'Description:'),
-                    React.DOM.textarea({ autoFocus: true, placeholder: 'Description', ref: 'description', className: 'description', defaultValue: contact.description}),
+            if (this.state.editing === 'description' || !this.props.contact.description) {
+                description = React.DOM.form({ onClick: this.stopPropagation, onSubmit: this.handleUpdate('description')},
+                    React.DOM.h3(null, 'Description:'),
+                    React.DOM.textarea({ autoFocus: (this.state.editing === 'description'), placeholder: 'Description', ref: 'description', className: 'description', defaultValue: contact.description }),
                     React.DOM.input({ type: 'submit', value: 'Save!', className: 'description' })
                 );
             } else {
-                description = React.DOM.div(null, 
+                description = React.DOM.div({ onClick: this.setEditing('description') },
                     React.DOM.h3({ className: 'description' }, 'Description: '),
-                    React.DOM.p({ ref: 'description', className: 'description'}, (this.props.contact.description.length<1)?'Insert Description':contact.description)
+                    React.DOM.p({ ref: 'description', className: 'description'},
+                    (this.props.contact.description.length === 0) ? 'Insert Description' : contact.description)
+                );
+            }
+
+            var lostdAddress;
+            if (this.state.editing === 'lostd_address' || !contact.lostd_address) {
+                lostdAddress = React.DOM.form({ onClick: this.stopPropagation, onSubmit: this.handleUpdate('lostd_address') },
+                    'Lostd Address: ',
+                    React.DOM.input({ type: 'email', autoFocus: (this.state.editing === 'lostd_address'), placeholder: 'Lostd Address', ref: 'lostd_address', defaultValue: contact.lostd_address }),
+                    React.DOM.input({ type: 'submit', value: 'Save!' })
+                );
+            } else {
+                lostdAddress = React.DOM.div({ onClick: this.setEditing('lostd_address') },
+                    React.DOM.p(null, 'Lostd Address: ', contact.lostd_address)
+                );
+            }
+
+            var publicKey;
+            if(this.state.editing === 'public_key' || !contact.public_key) {
+                publicKey = React.DOM.form({ onClick: this.stopPropagation, onSubmit: this.handleUpdate('public_key') },
+                    'Public Key: ',
+                    React.DOM.input({ type: 'text', autoFocus: (this.state.editing === 'public_key'), placeholder: 'Public Key', ref: 'public_key', defaultValue: contact.public_key, pattern: "^[a-zA-Z0-9\-_]+$" }),
+                    React.DOM.input({ type: 'submit', value: 'Save!' })
+                );
+            } else {
+                publicKey = React.DOM.div({ onClick: this.setEditing('public_key') },
+                    React.DOM.p(null, 'Public Key: ', contact.public_key)
                 );
             }
 
@@ -157,12 +185,15 @@ define(['assert', 'react', 'database', 'widgets/query_mixin'], function(assert, 
             });
 
 
-            return React.DOM.div(null, 
-                        React.DOM.div({className: 'contact_details', onClick: this.handleClicks},
+            return React.DOM.div({ onClick: this.clearEditing },
+                        React.DOM.div({className: 'contact_details' },
                             name,
                             React.DOM.br(null),
                             description,
-                            React.DOM.br(null)
+                            React.DOM.br(null),
+                            lostdAddress,
+                            React.DOM.br(null),
+                            publicKey
                         ),
                         React.DOM.div(null,
                             React.DOM.table({className: 'currencies_table'}, currencyRows)
