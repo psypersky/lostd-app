@@ -1,13 +1,13 @@
 'use strict';
 
-define(['assert', 'react', 'widgets/contact', 'widgets/query_mixin'], function(assert, React, Contact, QueryMixin) {
+define(['assert', 'react', 'widgets/contact_row', 'widgets/query_mixin'], function(assert, React, ContactRow, QueryMixin) {
 
-    var mixin = QueryMixin(function(doc) {
+    var mixin = QueryMixin(function(doc, emit) {
         if (doc.type === 'contact')
             emit('contact', doc);
-        else if (doc.type === 'record') {
+        else if (doc.type === 'record')
             emit('record', [doc.contact, doc.amount, doc.currency]);
-        }
+        
     });
 
     return React.createClass({
@@ -16,13 +16,13 @@ define(['assert', 'react', 'widgets/contact', 'widgets/query_mixin'], function(a
         mixins: [mixin],
 
         propTypes: {
-            contactClicked: React.PropTypes.func.isRequired
+            showContact: React.PropTypes.func.isRequired
         },
         
         render: function() {
             var self = this;
-
             var contactInfo = {};
+            var allCurrencies = {};
 
             self.forEachKV(function (k,v) {
 
@@ -34,11 +34,16 @@ define(['assert', 'react', 'widgets/contact', 'widgets/query_mixin'], function(a
                     if (!(id in contactInfo))
                         contactInfo[id] = [null, {}]; // contact info, currency-amount
 
-                    var currencyAmounts = contactInfo[id][1];
-                    if (!(currency in currencyAmounts))
-                        currencyAmounts[currency] = amount;
+                    if (currency in allCurrencies)
+                        allCurrencies[currency] += amount;
                     else
+                        allCurrencies[currency] = amount;
+
+                    var currencyAmounts = contactInfo[id][1];
+                    if (currency in currencyAmounts)
                         currencyAmounts[currency] += amount;
+                    else
+                        currencyAmounts[currency] = amount;
                 } else {
                     assert(k === 'contact');
                     var id = v._id;
@@ -59,29 +64,43 @@ define(['assert', 'react', 'widgets/contact', 'widgets/query_mixin'], function(a
                     return console.warn('Could not find any contact for ', id, ' but have records for it ', currencies);
 
                 list.push(
-                    Contact(
+                    ContactRow(
                         {
                             key: contact._id,
                             object: contact,
-                            currencies: currencies,
+                            currencyAmounts: currencies,
+                            allCurrencies: allCurrencies,
                             onClick: function() {
-                                self.props.contactClicked(contact)
+                                self.props.showContact(contact)
                             }
                         }
                     ));
             });
 
             var component;
-
             if (this.state.ready && list.length === 0) {
-                component =  React.DOM.p(null, 'You have no contacts! You should add one!');
+                component = React.DOM.p(null, 'You have no contacts! You should add one!');
             } else {
                 component = list;
             }
 
-            return React.DOM.div(null,
-                React.DOM.h2(null, 'All Contacts'),
-                component);
+            var thTitles = [];
+            thTitles.push(React.DOM.th({ key: 'th_' + 'empty_title' }, ''));
+            var thTotals = [];
+            thTotals.push(React.DOM.th({ key: 'th_' + 'total' }, 'Total'));
+            for( var currency in allCurrencies){
+                thTitles.push(React.DOM.th({ key: 'th_' + currency }, currency));
+                thTotals.push(React.DOM.th({ key: 'th_' + currency + 'qty' }, allCurrencies[currency]));
+            }
+
+            return React.DOM.div({ className: 'contact_list' },
+                        React.DOM.table(null,
+                            React.DOM.thead(null,
+                                React.DOM.tr(null, thTitles),
+                                React.DOM.tr(null, thTotals)),
+                            React.DOM.tbody(null, component)
+                        )
+                    );
         }
     });
 

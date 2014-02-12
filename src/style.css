@@ -67,6 +67,7 @@ h1, h2 {
 #page {
     vertical-align: top;
     padding-left: 20px;
+    width: 90%;
 }
 
 #infoTable td, #infoTable th {
@@ -94,4 +95,65 @@ h1, h2 {
     margin: 20px;
     padding: 10px;
     border: 1px solid grey;
+    min-width: 80%;
+}
+
+/* Contact List */
+
+/*Head*/
+.contact_list table thead tr{
+    height: 30px;
+}
+
+/*Body*/
+.contact_list tbody tr , {
+    min-height: 40px;
+}
+
+.contact_list tr:nth-of-type(odd) {
+  background-color:#f2f2f2;
+}
+
+/*All*/
+.contact_list {
+}
+
+.contact_list td{
+    min-width: 80px;
+    padding: 5px;
+}
+
+.contact_list td {
+    border-left: 1px solid #bdbdbd;
+}
+
+.contact_list table {
+    margin-top: 50px;
+    border-collapse:collapse;
+    border: 1px solid grey
+}
+
+/* Contact Details */
+
+.currencies_table {
+    width: 90%;
+}
+
+.currency_row {
+    display: block;
+    border: 1px solid black ;
+    min-width: 90%;
+}
+
+.currency_row td {
+    padding: 5px 20px;
+}
+
+.currency_details {
+    margin-left: 20px;
+    border: 1px solid black;
+}
+
+.currency_details td {
+    padding: 5px 20px;
 }

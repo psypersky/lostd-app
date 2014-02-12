@@ -163,7 +163,7 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
                     type: 'contact',
                     name: name,
                     description: description,
-                    created: new Date()
+                    created: Date.now()
                 },
                 callback
             );
@@ -182,7 +182,7 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
                     amount: amount,
                     currency: currency,
                     description: description,
-                    created: new Date()
+                    created: Date.now()
                 },
                 callback()
             )
