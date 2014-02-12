@@ -5,7 +5,7 @@ define(['assert', 'react', 'database', 'widgets/query_mixin'], function(assert, 
     return React.createClass({
         displayName: 'ContactSelector',
 
-        mixins: [QueryMixin(function(doc) {
+        mixins: [QueryMixin(function(doc,emit) {
             if (doc.type === 'contact')
                 emit(doc._id, doc);
         })],

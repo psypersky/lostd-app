@@ -5,7 +5,7 @@ define(['react', 'widgets/query_mixin'], function(React, QueryMixin) {
     return React.createClass({
         displayName: 'RecordList',
 
-        mixins: [QueryMixin(function(doc) {
+        mixins: [QueryMixin(function(doc, emit) {
             if (doc.type === 'record')
                 emit(doc._id, doc);
             })],

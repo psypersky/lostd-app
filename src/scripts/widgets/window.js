@@ -103,17 +103,19 @@ define(['react','pouchdb-nightly',
 			var self = this;
 			switch(this.state.category) {
 				case 'contacts':
-					switch(this.state.side) {
-						case 'name':
-							return ContactList({contactClicked: function(contact) {
-								self.setState({ side: 'contact_details', which_contact: contact })
-							}});
-						case 'add':
-							return ContactAdder(null);
-						case 'contact_details':
-							return ContactDetail({ contact: self.state.which_contact });
-					}
-					break;
+                    // if the side is an object (a contact) lets show the contact details
+                    if (typeof self.state.side === 'object') {
+                        return ContactDetail({ contact: self.state.side });
+                    }
+                    switch(this.state.side) {
+                        case 'name':
+                            return ContactList({showContact: function(contact) {
+                                self.setState({ side: contact })
+                            }});
+                        case 'add':
+                            return ContactAdder(null);
+                    }
+                    break;
                 case 'records':
                     switch (this.state.side) {
                         case 'add':

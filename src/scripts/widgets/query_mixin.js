@@ -4,23 +4,36 @@
 // sets dbList and dbListLoaded
 define(['react', 'database'], function(React, Database) {
 
-    return function(mapFn) {
+    return function(queryFn) {
 
         var emitResults = ['_kvs_'];
         function emit(k, v) {
-            console.log('Emit is being called...', k, v);
             emitResults.push([k,v]);
         }
-
-        var boundFn;
-        eval('boundFn = ' + mapFn.toString() + ';'); // ewww :P [Bind emit]
-
 
         return {
             displayName: 'QueryMixin',
 
             getInitialState: function() {
                 return { ready: false }
+            },
+
+            getValues: function() {
+                var self = this;
+                var ret = [];
+
+                Object.keys(self.state).forEach(function (id) {
+                    var kvs = self.state[id];
+
+                    if (Array.isArray(kvs) && kvs[0] === '_kvs_') {
+                        for (var i = 1 ; i < kvs.length ; ++i) {
+                            var value = kvs[i][1];
+                            ret.push(value);
+                        }
+                    }
+                });
+
+                return ret;
             },
 
             forEachKV: function(fn) {
@@ -43,7 +56,11 @@ define(['react', 'database'], function(React, Database) {
             componentWillMount: function() {
                 var self = this;
 
-                Database.query(mapFn, function(err, response) {
+                var boundFn = function(doc, emit) {
+                    return queryFn.call(self, doc, emit);
+                }
+
+                Database.query(boundFn, function(err, response) {
                     var data = { ready: true };  // { id: [[k,v], [k,v], [k,v]]
 
                     response.rows.forEach(function (x) {
@@ -55,7 +72,6 @@ define(['react', 'database'], function(React, Database) {
                     });
 
                     self.setState(data);
-
                 });
 
                 this.promise = Database.onChange(this.dbChangeListener);
@@ -72,7 +88,7 @@ define(['react', 'database'], function(React, Database) {
                 if (change['deleted'] === true && (change.id in this.state)) {
                     this.setState(op);
                 } else if (!change['deleted']) {
-                    boundFn(change.doc);
+                    queryFn.call(this, change.doc, emit);
                     if (emitResults.length != 0) {
                         op[change.id] = emitResults;
                         emitResults = ['_kvs_'];
