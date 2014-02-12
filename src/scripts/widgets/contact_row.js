@@ -1,13 +1,9 @@
 'use strict';
 
-define(['react', 'database'], function(React, Database) {
+define(['react', 'database', 'util'], function(React, Database, util) {
 
     return React.createClass({
         displayName: 'ContactRow',
-
-        getInitialState: function() {
-            return { error: null, isDeleting: false };
-        },
 
         propTypes: {
             onClick: React.PropTypes.func.isRequired,
@@ -22,9 +18,7 @@ define(['react', 'database'], function(React, Database) {
             var tds = [];
             for (var currency in this.props.allCurrencies) {
                 var value = this.props.currencyAmounts[currency];
-                if (value === undefined)
-                    value = ' ';
-                tds.push(React.DOM.td({ key: currency }, value));
+                tds.push( React.DOM.td({ key: currency }, value ?  util.formatNumber(value) : '') );
             }
 
             return  React.DOM.tr({onClick: this.props.onClick},

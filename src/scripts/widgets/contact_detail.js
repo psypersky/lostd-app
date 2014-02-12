@@ -1,6 +1,7 @@
 'use strict';
 
-define(['assert', 'react', 'database', 'widgets/query_mixin'], function(assert, React, Database, QueryMixin) {
+define(['assert', 'react', 'database', 'widgets/query_mixin', 'widgets/date', 'util'],
+    function(assert, React, Database, QueryMixin, DateWidget, Util) {
 
     var mixin = QueryMixin(function(doc, emit) {
         if (doc.type === 'contact' && doc._id === this.props.contact._id) {
@@ -67,7 +68,7 @@ define(['assert', 'react', 'database', 'widgets/query_mixin'], function(assert, 
 
             /* Save all the records in an Array using currency as a key */
             var contact = {};
-            var currencyRecords = {};   //Currency - Records[]
+            var currencyRecords = {};   //Currency - Records[0: transaction1, 1: transaction2...]
             if (!this.state.ready) {
                 contact = this.props.contact;
             } else {
@@ -79,24 +80,10 @@ define(['assert', 'react', 'database', 'widgets/query_mixin'], function(assert, 
                         if (value.currency in currencyRecords ) {
                             currencyRecords[value.currency].push(value);
                         } else {
-                            currencyRecords[value.currency] = [value];  // Currency - Records[]
+                            currencyRecords[value.currency] = [value];  
                         }
                     }
                 });
-            }
-
-            /*  Iterate through the currencyRecords and get the sum, total transactions, received transactions and send transactions */
-            var currenciesTotals = {};
-            for (var currency in currencyRecords) {
-                currenciesTotals[currency] = {
-                    total: 0,
-                    transactions: 0,
-                    sent: 0,
-                    received: 0
-                };
-                for (var record in currencyRecords[currency]) {
-                    currenciesTotals[currency].total += currencyRecords[currency][record].amount;
-                }
             }
 
             /* Name field */
@@ -152,6 +139,19 @@ define(['assert', 'react', 'database', 'widgets/query_mixin'], function(assert, 
                 );
             }
 
+            /*  Iterate through the currencyRecords and get the sum, total transactions, received transactions and sent transactions */
+            var currenciesTotals = {};
+            for (var currency in currencyRecords) {
+                currenciesTotals[currency] = {
+                    total: 0,
+                    transactions: 0,
+                    sent: 0,
+                    received: 0
+                };
+                for (var record in currencyRecords[currency]) {
+                    currenciesTotals[currency].total += currencyRecords[currency][record].amount;
+                }
+            }
 
             /* Create the row of each currency */
             var currencyRows = [];
@@ -164,29 +164,52 @@ define(['assert', 'react', 'database', 'widgets/query_mixin'], function(assert, 
                             self.handleCurrency(currency);
                         }}, 
                         React.DOM.td(null, React.DOM.b(null, "Currency: "), currency),
-                        React.DOM.td(null , React.DOM.b(null, "Total: "), currenciesTotals[currency].total)
+                        React.DOM.td(null , React.DOM.b(null, "Total: "), Util.formatNumber(currenciesTotals[currency].total))
                     ));
 
                 if (currency === self.state.showingCurrency) {
                     if (self.state.showingCurrency) {
 
-                        var rows = Object.keys(currencyRecords[self.state.showingCurrency]).map(function(transaction) {
-                            return React.DOM.tr({ key: 'transaction_' + transaction },
-                                React.DOM.td(null, 'Qty: ', currencyRecords[self.state.showingCurrency][transaction].amount),
-                                React.DOM.td(null, 'Type: ',  currencyRecords[self.state.showingCurrency][transaction].record_type),
-                                React.DOM.td(null, 'Date: ', new Date(currencyRecords[self.state.showingCurrency][transaction].created).toString()),
-                                React.DOM.td(null, 'Description: ', currencyRecords[self.state.showingCurrency][transaction].description)
+                        currencyRecords[self.state.showingCurrency].sort( function compare(a,b) {
+                            return a.created - b.created;
+                        });
+
+                        /* Create the detail currency table */
+                        var tableHeader = React.DOM.thead(null,
+                                React.DOM.tr(null,
+                                    React.DOM.th(null, 'Date'),
+                                    React.DOM.th(null, 'Description'),
+                                    React.DOM.th(null, 'Debit'),
+                                    React.DOM.th(null, 'Credit'),
+                                    React.DOM.th(null, 'Balance')
+                                )
                             );
+
+                        var balance = 0;
+                        var rows = Object.keys(currencyRecords[self.state.showingCurrency]).map(function(transaction) {
+
+                            var amount = currencyRecords[self.state.showingCurrency][transaction].amount;
+                            var record_type = currencyRecords[self.state.showingCurrency][transaction].record_type;
+                            var description = currencyRecords[self.state.showingCurrency][transaction].description;
+                            balance += amount;
+
+                            return React.DOM.tr({ key: 'transaction_' + transaction },
+                                React.DOM.td(null, DateWidget({date: currencyRecords[self.state.showingCurrency][transaction].created})),
+                                React.DOM.td(null, Util.formatRecordType(record_type)  + ': ' + description),
+                                React.DOM.td(null, (amount<0) ? Util.formatNumber(-amount) : ''),
+                                React.DOM.td(null, (amount>0) ? Util.formatNumber(amount) : ''),  //What if the amount is cero?
+                                React.DOM.td(null, Util.formatNumber(balance))
+                            );
+
                         });
                     }
 
-                    currencyRows.push(React.DOM.table({ key: 'currencyDetails', className: 'currency_details' }, rows));
+                    currencyRows.push(React.DOM.table({ key: 'currencyDetails'+self.state.showingCurrency, className: 'currency_details' }, tableHeader, rows));
                 }
             });
 
-
-            return React.DOM.div({ onClick: this.clearEditing },
-                        React.DOM.div({className: 'contact_details' },
+            return React.DOM.div({ onClick: this.clearEditing }, 
+                        React.DOM.div({className: 'contact_details', onClick: this.handleClicks},
                             name,
                             React.DOM.br(null),
                             description,
