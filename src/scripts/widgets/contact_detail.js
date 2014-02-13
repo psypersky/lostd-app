@@ -163,8 +163,8 @@ define(['assert', 'react', 'database', 'widgets/query_mixin', 'widgets/date', 'u
                             className: 'currency_row', onClick: function() {
                             self.handleCurrency(currency);
                         }}, 
-                        React.DOM.td(null, React.DOM.b(null, "Currency: "), currency),
-                        React.DOM.td(null , React.DOM.b(null, "Total: "), Util.formatNumber(currenciesTotals[currency].total))
+                        React.DOM.td(null, "Currency: ", currency),
+                        React.DOM.td(null , "Total: ", Util.formatNumber(currenciesTotals[currency].total))
                     ));
 
                 if (currency === self.state.showingCurrency) {
@@ -204,18 +204,18 @@ define(['assert', 'react', 'database', 'widgets/query_mixin', 'widgets/date', 'u
                         });
                     }
 
-                    currencyRows.push(React.DOM.table({ key: 'currencyDetails'+self.state.showingCurrency, className: 'currency_details' }, tableHeader, rows));
+                    currencyRows.push(
+                            React.DOM.table({ key: 'currencyDetails'+self.state.showingCurrency, className: 'currency_details' }, tableHeader, rows)
+                    );
                 }
             });
 
             return React.DOM.div({ onClick: this.clearEditing }, 
                         React.DOM.div({className: 'contact_details', onClick: this.handleClicks},
+
                             name,
-                            React.DOM.br(null),
                             description,
-                            React.DOM.br(null),
                             lostdAddress,
-                            React.DOM.br(null),
                             publicKey
                         ),
                         React.DOM.div(null,

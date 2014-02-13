@@ -92,10 +92,10 @@ define(['assert', 'react', 'widgets/contact_row', 'widgets/query_mixin', 'util']
                 
                 for ( var currency in allCurrencies) {
                     thTitles.push(React.DOM.th({ key: 'th_' + currency }, currency));
-                    thTotals.push(React.DOM.th({ key: 'th_' + currency + 'qty' }, Util.formatNumber(allCurrencies[currency])));
+                    thTotals.push(React.DOM.td({ key: 'th_' + currency + 'qty' }, Util.formatNumber(allCurrencies[currency])));
                 }
                 if (thTitles.length > 0) {
-                    thTitles.unshift(React.DOM.td({ key: 'empty_title' }, ''));
+                    thTitles.unshift(React.DOM.th({ key: 'th_iser' }, 'User'));
                     thTotals.unshift(React.DOM.th({ key: 'total' }, 'Total:'));
 
                     tableHead = React.DOM.thead(null,
@@ -105,8 +105,7 @@ define(['assert', 'react', 'widgets/contact_row', 'widgets/query_mixin', 'util']
                 
                 content = React.DOM.table(null,
                                     tableHead,
-                                    React.DOM.tbody(null, list),
-                                    totals
+                                    React.DOM.tbody(null, list, totals)
                                  );
             }
 
