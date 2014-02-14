@@ -188,6 +188,29 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
                 },
                 callback()
             )
+        },
+
+        // This function deletes the user, and all associated documents
+        deleteContact: function(userId, callback) {
+            var map = function(doc, emit) {
+                if (doc.type === 'contact' && doc._id === userId)
+                    emit({ _id: doc._id, _rev: doc._rev, _deleted: true });
+                else if (doc.type === 'record' && doc.contact === userId)
+                    emit({ _id: doc._id, _rev: doc._rev, _deleted: true});
+            }
+
+            db.query({ map: map}, function(err, response) {
+                if (err) return callback(err);
+
+                var bulkQuery = response.rows.map(function(x) {
+                    return x.key;
+                });
+
+                console.log('bulk query is: ', bulkQuery);
+
+                db.bulkDocs({ docs: bulkQuery }, callback);
+
+            });
 
         },
 

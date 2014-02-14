@@ -17,11 +17,12 @@ define(['assert', 'react', 'database', 'widgets/query_mixin', 'widgets/date', 'u
         mixins: [mixin],
 
         propTypes: {
-            contact: React.PropTypes.object.isRequired
+            contact: React.PropTypes.object.isRequired,
+            changeContactsWidget: React.PropTypes.func.isRequired
         },
 
         getInitialState: function() {
-            return { editing: null, showingCurrency: null };
+            return { err: null, editing: null, showingCurrency: null };
         },
 
         handleUpdate: function(what) {
@@ -40,6 +41,27 @@ define(['assert', 'react', 'database', 'widgets/query_mixin', 'widgets/date', 'u
                 });
                 return false;
             }
+        },
+
+        handleDelete: function(contact, currencyRecords) {
+                var self = this;
+                return function() {
+                    if(confirm('Delete this contact and all its transactions?', 'Delete contact'))
+                    {
+                        Database.deleteContact(contact._id, function(err, response){
+                            if (err) {
+                                console.error('Error deleting contact: ', contact, err);
+                                if (self.isMounted)
+                                    self.setState({ err: err });
+                                return;
+                            }
+                            console.log('Contact: ', contact, ' was successfully deleted');
+                            if (self.isMounted)
+                                self.props.changeContactsWidget('name');
+                            
+                        });
+                    }
+                }
         },
 
         handleCurrency: function(currency) {
@@ -65,6 +87,7 @@ define(['assert', 'react', 'database', 'widgets/query_mixin', 'widgets/date', 'u
 
         render: function() {
             var self = this;
+            var R = React.DOM;
 
             /* Save all the records in an Array using currency as a key */
             var contact = {};
@@ -210,13 +233,14 @@ define(['assert', 'react', 'database', 'widgets/query_mixin', 'widgets/date', 'u
                 }
             });
 
-            return React.DOM.div({ onClick: this.clearEditing }, 
+            return React.DOM.div({ onClick: this.clearEditing },
+                        (this.state.err ? R.p({ className: 'errorText'}, 'Found error: ' + this.state.err) : null),
                         React.DOM.div({className: 'contact_details', onClick: this.handleClicks},
-
                             name,
                             description,
                             lostdAddress,
-                            publicKey
+                            publicKey,
+                            React.DOM.button({onClick: this.handleDelete(contact, currencyRecords)}, 'Delete Contact')
                         ),
                         React.DOM.div(null,
                             React.DOM.table({className: 'currencies_table'}, currencyRows)

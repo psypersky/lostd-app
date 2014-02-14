@@ -105,12 +105,14 @@ define(['react','pouchdb-nightly',
 				case 'contacts':
                     // if the side is an object (a contact) lets show the contact details
                     if (typeof self.state.side === 'object') {
-                        return ContactDetail({ contact: self.state.side });
+                                return ContactDetail({ contact: self.state.side , changeContactsWidget:function(widget) {
+                                self.setState({ side: widget })
+                            }});
                     }
                     switch(this.state.side) {
                         case 'name':
-                            return ContactList({showContact: function(contact) {
-                                self.setState({ side: contact })
+                            return ContactList({changeContactsWidget: function(widget) {
+                                self.setState({ side: widget })
                             }});
                         case 'add':
                             return ContactAdder(null);
