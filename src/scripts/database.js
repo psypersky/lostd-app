@@ -1,14 +1,13 @@
 'use strict';
 
-define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Settings) {
+define(['assert', 'pouchdb-nightly'], function(assert, PouchDb) {
 
     var db = new PouchDb('lostd');
 
-    function continuousReplication() {
+    function continuousReplication(dbUrl) {
 
         var cancel = false;
 
-        var dbUrl = Settings.get('database_url');
         if (!dbUrl) return;
 
         console.log('Replication to ', dbUrl, ' has begun');
@@ -30,9 +29,6 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
             if (cancel) return;
             console.log('Starting import... from: ', dbUrl);
             return db.replicate.from(dbUrl, { continuous: true }, function(err) {
-                if (!err)
-                    Settings.set('last_import', new Date());
-
                 if (cancel) return;
                 console.log('Resetting continuous import...', err);
 
@@ -44,9 +40,6 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
             if (cancel) return;
             console.log('Starting export... to: ', dbUrl);
             return db.replicate.to(dbUrl, { continuous: true }, function(err) {
-                if (!err)
-                    Settings.set('last_export', new Date());
-
                 if (cancel) return;
                 console.log('Resetting continuous export...', err);
 
@@ -55,7 +48,7 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
         }
     }
 
-    var promise = continuousReplication();
+    var promise = null;
 
     return {
 
@@ -66,9 +59,9 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
             }
         },
 
-        restartReplication: function() {
+        replicate: function(dbUrl) {
             if (promise) promise.cancel();
-            promise = continuousReplication();
+            promise = continuousReplication(dbUrl);
         },
 
         destroy: function(callback) {
@@ -76,11 +69,11 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
             PouchDb.destroy('lostd', function(err, response) {
                 console.log('Result of destroy... ', err, response);
                 db = new PouchDb('lostd');
-                promise = continuousReplication();
                 callback(err);
             });
         },
 
+        // Calls callback with: err, amount of docs deleted
         deleteAll: function(callback) {
             db.allDocs({include_docs: true }, function (err, response) {
                 assert(response['total_rows'] === response.rows.length);
@@ -90,7 +83,10 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
                     return x.doc;
                 });
 
-                db.bulkDocs({ docs: docs }, callback);
+                db.bulkDocs({ docs: docs }, function(err) {
+                    if (err) return callback(err);
+                    callback(null, response['total_rows']);
+                });
             });
         },
 
@@ -98,56 +94,14 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
             return db.changes({ since: 'latest', continuous: true, include_docs: true, onChange: onChange });
         },
 
-        exportTo: function(dbUrl, callback) {
-            return db.replicate.to(dbUrl, function(err) {
-                console.log('Finished exporting to ', dbUrl, ' with error: ', err);
-
-                if (!err)
-                    Settings.set('last_export', new Date());
-
-                callback(err);
-            });
-        },
-
-        importFrom: function(dbUrl, callback) {
-            return db.replicate.from(dbUrl, function(err) {
-                console.log('Finished import from ', dbUrl, ' with error: ', err);
-
-                if (!err)
-                    Settings.set('last_import', new Date());
-
-                callback(err);
-            });
-        },
-
-        sync: function(dbUrl, callback) {
-            console.log('Syncing to ', dbUrl);
-
-            var remaining = 2;
-            var lastErr;
-
-            db.replicate.from(dbUrl, { batch_size: 500 }, function(err) {
-                console.log('Finished importing from ', dbUrl);
-
-                Settings.set('last_import', new Date());
-
-                if (--remaining == 0)
-                    callback(lastErr || err);
+        sync: function(to, callback) {
+            var done = false;
+            db.replicate.sync(to, { complete: function(err) {
+                if (done) // HACK: see pouchdb issue 1409
+                    callback(err);
                 else
-                    lastErr = err;
-            });
-
-            db.replicate.to(dbUrl, { batch_size: 500 }, function(err) {
-                console.log('Finished exporting to ', dbUrl);
-
-                Settings.set('last_export', new Date());
-
-                if (--remaining == 0)
-                    callback(lastErr || err);
-                else
-                    lastErr = err;
-            });
-
+                    done = !done;
+            }});
         },
 
         docsCount: function(callback) {
@@ -156,6 +110,11 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
                 callback(null, resp['doc_count']);
             });
         },
+
+        get: db.get.bind(db),
+        post: db.post.bind(db),
+        put: db.put.bind(db),
+        remove: db.remove.bind(db),
 
         addContact: function(name, description, lostdAddress, publicKey, callback) {
             db.post(
@@ -210,8 +169,6 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
             });
 
         },
-
-        remove: db.remove.bind(db),
 
         query: function(mapFunction, callback) {
             db.query({ map: mapFunction}, callback);

@@ -1,12 +1,12 @@
 'use strict';
 
 define(['react','pouchdb-nightly',
-    'database', 'settings',
-    'widgets/contact_list', 'widgets/contact_adder', 'widgets/contact_detail',
-    'widgets/record_adder', 'widgets/record_list'
+    'database',
+	'widgets/contact_list', 'widgets/contact_adder', 'widgets/contact_detail',
+	'widgets/record_adder', 'widgets/record_list'
 ],
     function(React, PouchDB
-        , Database, Settings
+        , Database
         , ContactList, ContactAdder, ContactDetail
         , RecordAdder, RecordList) {
 
