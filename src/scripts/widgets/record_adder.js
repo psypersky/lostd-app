@@ -96,7 +96,7 @@ define(['assert', 'react', 'database', 'widgets/contact_selector'], function(ass
                         ),
                         React.DOM.tr(null,
                             React.DOM.td(null, 'Currency:'),
-                            React.DOM.td(null, React.DOM.input({ ref: 'currency', placeholder: 'currency', type: 'text', required: true }))
+                            React.DOM.td(null, React.DOM.input({ ref: 'currency', type: 'text', required: true }, 'Select a currency'))
                         ),
                         React.DOM.tr(null,
                             React.DOM.td(null, 'Description:'),

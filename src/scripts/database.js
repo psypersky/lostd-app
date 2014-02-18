@@ -206,10 +206,7 @@ define(['assert', 'pouchdb-nightly', 'settings'], function(assert, PouchDb, Sett
                     return x.key;
                 });
 
-                console.log('bulk query is: ', bulkQuery);
-
                 db.bulkDocs({ docs: bulkQuery }, callback);
-
             });
 
         },

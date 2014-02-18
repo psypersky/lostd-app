@@ -18,7 +18,7 @@ define(['assert', 'react', 'database', 'widgets/query_mixin', 'widgets/date', 'u
 
         propTypes: {
             contact: React.PropTypes.object.isRequired,
-            changeContactsWidget: React.PropTypes.func.isRequired
+            onDelete: React.PropTypes.func.isRequired
         },
 
         getInitialState: function() {
@@ -57,7 +57,7 @@ define(['assert', 'react', 'database', 'widgets/query_mixin', 'widgets/date', 'u
                             }
                             console.log('Contact: ', contact, ' was successfully deleted');
                             if (self.isMounted)
-                                self.props.changeContactsWidget('name');
+                                self.props.onDelete();
                             
                         });
                     }

@@ -17,7 +17,11 @@ define(['assert', 'react', 'widgets/contact_row', 'widgets/query_mixin', 'util']
         mixins: [mixin],
 
         propTypes: {
-            changeContactsWidget: React.PropTypes.func.isRequired
+            onContactClicked: React.PropTypes.func.isRequired
+        },
+
+        button: function() {
+            return React.DOM.p(null, 'Btn!');
         },
         
         render: function() {
@@ -73,7 +77,7 @@ define(['assert', 'react', 'widgets/contact_row', 'widgets/query_mixin', 'util']
                             currencyAmounts: currencies,
                             allCurrencies: allCurrencies,
                             onClick: function() {
-                                self.props.changeContactsWidget(contact)
+                                self.props.onContactClicked(contact)
                             }
                         }
                     ));

@@ -2,180 +2,151 @@
 
 define(['react','pouchdb-nightly',
     'database', 'settings',
-	'widgets/contact_list', 'widgets/contact_adder', 'widgets/contact_detail',
-	'widgets/record_adder', 'widgets/record_list',
-    'widgets/settings_overview', 'widgets/settings_register', 'widgets/settings_advanced', 'widgets/settings_login', 'widgets/settings_logout'
+    'widgets/contact_list', 'widgets/contact_adder', 'widgets/contact_detail',
+    'widgets/record_adder', 'widgets/record_list'
 ],
     function(React, PouchDB
         , Database, Settings
         , ContactList, ContactAdder, ContactDetail
-        , RecordAdder, RecordList
-        , SettingsOverview, SettingsRegister, SettingsAdvanced, SettingsLogin, SettingsLogout
-        , QueryMixin) {
+        , RecordAdder, RecordList) {
 
-	function assert(b) {
-		if (!b) throw new Error('Assertion Failure!');
-	}
+    var R = React.DOM;
 
-	return React.createClass({
-		displayName: 'Window',
+    return React.createClass({
+        displayName: 'Window',
 
-		getInitialState: function() {
+        getInitialState: function() {
+            return {
+                widget: this.contactListWidget(),
+                moveRight: false,
+                topRightButton: this.contactAddButton()
+            };
+        },
 
-            if (Settings.get('database_url')) {
-                var category = 'contacts';
-                return { loggedIn: true, category: category, side: this.defaultSide(category) };
-            } else {
-                return { loggedIn: false, category: 'settings', side: 'login' };
-            }
-		},
+        showOverview: function() {
+            var btn = R.p(null, 'TODO:');
+            var widget = R.p(null, 'Overview... (TODO:...)');
+            this.setState({widget: widget, topRightButton: btn });
+        },
 
-        componentWillMount: function() {
+        showContactList: function() {
+            this.setState({ widget: this.contactListWidget(), topRightButton: this.contactAddButton() })
+        },
+
+        showContactDetail: function(contact) {
+            this.setState({ widget: this.detailListWidget(contact), topRightButton: this.contactCancelButton() })
+        },
+
+        contactListWidget: function() {
             var self = this;
-            this.loggedInListener = Settings.listen('database_url', function (dbUrl) {
-                self.setState({ loggedIn: !!dbUrl });
+            return ContactList({
+                onContactClicked: self.showContactDetail
             });
         },
 
-        componentWillUnmount: function() {
-            this.loggedInListener.cancel();
+        contactAddButton: function() {
+            return this.createButton('fi-plus', ContactAdder, this.contactCancelButton);
         },
 
-		defaultSide: function(category) {
-			return this.options(category)[0][0];
-		},
+        //Return a function to be attached on the button
+        contactCancelButton: function() {
+            return this.createButton('fi-x', this.contactListWidget, this.contactAddButton);
+        },
 
-		mkProperty: function(category) {
-			var self = this;
+        showRecords: function() {
+            this.setState({ widget: RecordList(null), topRightButton: this.recordAddButton() });
+        },
 
-			if (this.state.category === category)
-				return { className: 'active' };
-			else 
-				return {
-					onClick: function() {
-                        self.setState({ category: category, side: self.defaultSide(category) });
-					}
-				};
-		},
+        recordAddButton: function() {
+            return this.createButton('fi-plus', RecordAdder, this.recordCancelButton);
+        },
 
-		options: function(category) {
-			switch (category) {
-				case 'contacts':
-					return [['name', 'By Name']
-						   ,['add', 'Create a contact']];
-				case 'records':
-					return [['add', 'Add']
-						   ,['list', 'List']];
-				case 'payment':
-					return [['add', 'Add']
-						   ,['details', 'Details']];
-				case 'settings':
-                    var start = (this.state.loggedIn ? [['logout', 'Logout']] : [['login', 'Login'], ['register', 'Register']]);
-					return start.concat([['overview', 'Overview'], ['advanced', 'Danger Zone']]);
-				default:
-					assert('Unknown category: ' + category);
-			}
-		},
+        recordCancelButton: function() {
+            return this.createButton('fi-x', RecordList, this.recordAddButton);
+        },
 
-		sidebar: function() {
+        showPayments: function() {
+            var btn = R.p(null, 'TODO:');
+            var widget = R.p(null, 'Payments... (TODO:...)');
+            this.setState({widget: widget, topRightButton: btn });
+        },
 
-			var opts = this.options(this.state.category);
+        showSettings: function() {
+            var btn = R.p(null, 'TODO:');
+            var widget = R.p(null, 'Settings... (TODO:...)');
+            this.setState({widget: widget, topRightButton: btn });
+        },
 
-			var self = this;
-
-			var items = opts.map(function (kv) {
-					var key = kv[0];
-					var value = kv[1];
-
-					var property = { key: key, onClick: function() { self.setState({ side: key }); } };
-
-					if (self.state.side === key) {
-						property.className = 'active';
-					}
-
-					return React.DOM.li(property, value);
-				});
-
-			return React.DOM.ul(null, items);
-		},
-
-		widget: function() {
-			var self = this;
-			switch(this.state.category) {
-				case 'contacts':
-                    // if the side is an object (a contact) lets show the contact details
-                    if (typeof self.state.side === 'object') {
-                                return ContactDetail({ contact: self.state.side , changeContactsWidget:function(widget) {
-                                self.setState({ side: widget })
-                            }});
+        // Return a button of type 'className' 
+        // if clicked set this.widget to onClickWidget and this.topRightButton to onClickButton
+        createButton: function(className, onClickWidget, onClickButton) {
+            var self = this;
+            return R.a({
+                    href: '#',
+                    onClick: function() {
+                        console.log('Add button clicked');
+                        self.setState({ widget: onClickWidget(), topRightButton: onClickButton() });
                     }
-                    switch(this.state.side) {
-                        case 'name':
-                            return ContactList({changeContactsWidget: function(widget) {
-                                self.setState({ side: widget })
-                            }});
-                        case 'add':
-                            return ContactAdder(null);
-                    }
-                    break;
-                case 'records':
-                    switch (this.state.side) {
-                        case 'add':
-                            return RecordAdder(null);
-                        case 'list':
-                            return RecordList(null);
-                    }
-                case 'payment':
-                    switch (this.state.side) {
-                        case 'add':
-                            // ...
-                    }
-                    break;
-				case 'settings':
-					switch (this.state.side) {
-						case 'login':
-							return SettingsLogin(null);
-						case 'register':
-							return SettingsRegister(null);
-                        case 'logout':
-                            return SettingsLogout(null);
-                        case 'overview':
-                            return SettingsOverview(null);
-						case 'advanced':
-							return SettingsAdvanced(null);
-					}
-					break;
-			}
+                },
+                React.DOM.i({className: className + ' size-21 menu-icon-style'}));
+        },
 
-			var err = 'Unknown window widget for: ' + this.state.category + ' and ' + this.state.side;
-			console.log(err);
-			return React.DOM.p(null, err);
-		},
+        detailListWidget: function(contact) {
+            var self = this;
+            return ContactDetail({
+                contact: contact,
+                onDelete: self.showContactList
+            });
+        },
 
-		render: function() {
-			return (
-				React.DOM.div(null,
-					React.DOM.h1(null, 'Lostd App'),		
-					React.DOM.ul({ id: 'categories' },
-						React.DOM.li(this.mkProperty('contacts'), 'Contacts'),
-						React.DOM.li(this.mkProperty('records'), 'Records'),
-						React.DOM.li(this.mkProperty('payment'), 'Payment'),
-						React.DOM.li(this.mkProperty('settings'), 'Settings')
-					),
-                    React.DOM.hr(null),
-					React.DOM.table(null,
-                        React.DOM.tr(null,
-                            React.DOM.td({ id: 'sidebar' },
-							    this.sidebar()
-                            ),
-							React.DOM.td({ id: 'page' },
-                                this.widget()
+        toggleOfCanvasMenu: function(e) {
+            this.setState({ moveRight: !this.state.moveRight });
+        },
+
+        render: function() {
+            var self = this;
+
+            var offCanvasWrap = 'off-canvas-wrap';
+            if (this.state.moveRight)
+                offCanvasWrap += ' move-right';
+
+            return (
+                R.div({className: 'main-wrapper'},
+                    R.nav({className: 'tab-bar' },
+                        R.section({className: 'left-small'},
+                            R.a({className: 'menu-icon', onClick: this.toggleOfCanvasMenu},
+                                R.span(null)
                             )
-						)
-					)
-				)
-			);
-		},
-
-	});
+                        ),
+                        R.section({className: 'right tab-bar-section'},
+                            R.h1({className: 'title'}, 'Lostd App')
+                        ),
+                        R.section({className: 'right-small text-center'},
+                            self.state.topRightButton
+                        )
+                    ),
+                    R.div({className: offCanvasWrap },
+                        R.div({className: 'inner-wrap'},
+                            R.aside({className: 'left-off-canvas-menu'},
+                                R.ul({className: 'off-canvas-list'},
+                                    R.li({ onClick: self.showOverview }, R.a({href: '#'}, 'Overview')),
+                                    R.li({ onClick: self.showContactList }, R.a({href: '#'}, 'Contacts')),
+                                    R.li({ onClick: self.showRecords }, R.a({href: '#'}, 'Records')),
+                                    R.li({ onClick: self.showPayments }, R.a({href: '#'}, 'Payments')),
+                                    R.li({ onClick: self.showSettings }, R.a({href: '#'}, 'Settings'))
+                                )
+                            ),
+                            R.section({className: 'main-section'},
+                                R.div({className: 'row'},
+                                    R.div({className: 'large-12 columns'},
+                                        this.state.widget
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )//main-wrapper
+            );
+        }//render
+    });
 });

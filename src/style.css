@@ -1,201 +1,42 @@
-* {
-    padding: 0;
-    margin: 0;
+/*    GENERAL STYLES    */
+
+/*  Main wrapper  */
+.main-wrapper {
+    height: 100%;
 }
 
-p {
-    margin-bottom: 0.7em;
-}
+/*  Top bar  */
 
-label {
-    margin-left: 0.5em;
-}
 
-body {
-	font-family: "Trebuchet MS", Helvetica, sans-serif;
-}
+/*  Side bar  */
 
-table {
-    border-spacing: 0;
-}
-
-hr {
-    height: 10px;
-    background-color: black;
-    border: none;
-}
-
-h1, h2, h3 {
-    margin-top: 5px;
-    margin-bottom: 10px;
-}
-
-#categories li {
-    border-right: 1px solid black;
-    border-top: 1px solid black;
-    background-color: lightgrey;
-    display: inline-block;
-    padding: 16px;
-}
-
-#categories .active {
-    color: white;
-    background-color: black;
-}
-
-#sidebar {
-    vertical-align: top;
-    background-color: black;
-    width: 9em;
-    box-shadow: -2000px 2000px 0px 2000px #000
-}
-
-#sidebar ul {
-    padding-left: 0;
-}
-
-#sidebar li {
-    color: white;
-    padding: 10px;
-}
-
-#sidebar .active {
-    color: black;
-    background-color: white;
-}
-
-#page {
-    vertical-align: top;
-    padding-left: 20px;
-    width: 90%;
-}
-
-#infoTable td, #infoTable th {
-    border: 1px solid black;
-    padding: 5px;
-}
-
-.errorText {
-    color: red;
-}
-
-.greyBox {
-    margin: 20px;
-    padding: 10px;
-    border: 1px solid grey;
-    background-color: lightgrey;
+/*  Widget container  */
+.inner-wrap {
+    height: 100%;
 }
 
 
-/* Contact Details */
-
-.contact_details {
-    margin-top: 20px;
-    background-color: rgb(211, 211, 211);
-    padding: 10px;
-    border: 1px solid grey;
-    width: 90%;
-}
-
-.contact_details h3, .contact_details > form {
-    padding-bottom: 10px;
-    padding-left: 5px;
-    margin: 0;
-}
-
-/*  Contact List  */
-
-/*Head*/
-
-.contact_list thead {
-    border: 1px solid gray;
-}
-
-.contact_list table thead tr{
-    height: 30px;
-}
-
-/*Body*/
-.contact_list tbody tr , {
-    min-height: 40px;
-}
-
-.contact_list table thead tr:nth-child(1) {
-  background-color:#b0b0b0;
-}
-
-.contact_list tr:nth-of-type(odd) {
-  background-color:#f2f2f2;
-}
-
-.contact_list th {
-    text-align: center;
-    font-weight: bold;
-}
-
-/*All*/
-
-.contact_list table {
-    margin-top: 50px;
-    border-collapse:collapse;
-    border: 1px solid grey;
-    min-width: 10%;
-    text-align: left;
-
-}
-
-.contact_list td, .contact_list th{
-    min-width: 80px;
-    padding: 5px;
-}
-
-.contact_list td {
-    border-left: 1px solid gray;
-    text-align: right;
-}
+/*    WIDGETS STYLES    */
 
 
+/*    ICON FONTS    */
 
-#total_row {
-    border-top: 1px solid gray;
-    font-weight: bold; /* Relying on the browser to bold the th's */
-}
+.size-12 { font-size: 12px; }
 
-#total_row:first-child {
-    text-align: left;
-}
+.size-14 { font-size: 14px; }
 
-/*  Contact Details  */
+.size-16 { font-size: 16px; }
 
-.currencies_table {
-    margin-top: 20px;
-    width: 90%;
-    border-collapse: collapse;
-}
+.size-18 { font-size: 18px; }
 
-.currencies_table>tr:nth-of-type(odd) {
-    background-color:#f2f2f2;
-}
+.size-21 { font-size: 21px; }
 
-.currencies_table > tr:first-child {
-    width: 30px;
-}
+.size-24 { font-size: 24px; }
 
-.currency_row {
-    border: 1px solid gray ;
-}
+.size-36 { font-size: 36px; }
 
-.currency_row td {
-    padding: 5px 20px;
+.size-48 { font-size: 48px; }
 
-}
+.size-60 { font-size: 60px; }
 
-.currency_details {
-    margin-left: 20px;
-    border: 1px solid gray;
-}
-
-.currency_details td {
-    padding: 5px 20px;
-}
-
+.size-72 { font-size: 72px; }
