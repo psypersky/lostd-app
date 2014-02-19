@@ -1,18 +1,40 @@
 /*    GENERAL STYLES    */
 
-/*  Main wrapper  */
-.main-wrapper {
+html, body, .main-wrapper, .off-canvas-wrap, .inner-wrap
+{
     height: 100%;
+    min-height: 100%;
 }
 
+/*  Main wrapper  */
+.main-wrapper{
+    overflow-y: hidden;
+}
+
+
 /*  Top bar  */
+.tab-bar a {
+    height: 100%;
+    width: 100%;
+}
+
+section.tab-bar-button {
+    cursor: pointer;
+    text-align: center;
+}
+
+a.tab-bar-icon {
+    color: white;
+}
 
 
 /*  Side bar  */
 
+
+
 /*  Widget container  */
 .inner-wrap {
-    height: 100%;
+    min-height: 300px;
 }
 
 
@@ -40,3 +62,22 @@
 .size-60 { font-size: 60px; }
 
 .size-72 { font-size: 72px; }
+
+.errorText {
+    color: red;
+}
+
+/*  Overwritting foundations CSS to move the menu to the rigth with % */
+/*
+.left-off-canvas-menu{
+    width: 84%;
+}
+
+.move-right > .inner-wrap {
+  -webkit-transform: translate3d(84%, 0, 0);
+  -moz-transform: translate3d(84%, 0, 0);
+  -ms-transform: translate3d(84%, 0, 0);
+  -o-transform: translate3d(84%, 0, 0);
+  transform: translate3d(84%, 0, 0); }
+
+*/

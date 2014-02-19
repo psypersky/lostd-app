@@ -24,7 +24,7 @@ define(['react','pouchdb-nightly',
         },
 
         showOverview: function() {
-            var btn = R.p(null, 'TODO:');
+            var btn = R.section({className: 'right-small tab-bar-button'}, R.p(null, 'TODO:'));
             var widget = R.p(null, 'Overview... (TODO:...)');
             this.setState({widget: widget, topRightButton: btn });
         },
@@ -66,13 +66,13 @@ define(['react','pouchdb-nightly',
         },
 
         showPayments: function() {
-            var btn = R.p(null, 'TODO:');
-            var widget = R.p(null, 'Payments... (TODO:...)');
+            var btn = R.section({className: 'right-small tab-bar-button'}, R.p(null, 'TODO:'));
+            var widget =  R.p(null, 'Payments... (TODO:...)');
             this.setState({widget: widget, topRightButton: btn });
         },
 
         showSettings: function() {
-            var btn = R.p(null, 'TODO:');
+            var btn = R.section({className: 'right-small tab-bar-button'}, R.p(null, 'TODO:'));
             var widget = R.p(null, 'Settings... (TODO:...)');
             this.setState({widget: widget, topRightButton: btn });
         },
@@ -81,14 +81,17 @@ define(['react','pouchdb-nightly',
         // if clicked set this.widget to onClickWidget and this.topRightButton to onClickButton
         createButton: function(className, onClickWidget, onClickButton) {
             var self = this;
-            return R.a({
-                    href: '#',
-                    onClick: function() {
-                        console.log('Add button clicked');
-                        self.setState({ widget: onClickWidget(), topRightButton: onClickButton() });
-                    }
-                },
-                React.DOM.i({className: className + ' size-21 menu-icon-style'}));
+
+            return R.section({className: 'right-small tab-bar-button',
+                                onClick: function() {
+                                    console.log('Add button clicked');
+                                    self.setState({ widget: onClickWidget(), topRightButton: onClickButton() });
+                                }
+                             },
+                        R.a({ href: '#', className: 'tab-bar-icon' },
+                            React.DOM.i({className: className + ' size-21 menu-icon-style'})
+                        )
+                    );
         },
 
         detailListWidget: function(contact) {
@@ -121,28 +124,29 @@ define(['react','pouchdb-nightly',
                         R.section({className: 'right tab-bar-section'},
                             R.h1({className: 'title'}, 'Lostd App')
                         ),
-                        R.section({className: 'right-small text-center'},
-                            self.state.topRightButton
-                        )
+                        self.state.topRightButton
                     ),
                     R.div({className: offCanvasWrap },
                         R.div({className: 'inner-wrap'},
-                            R.aside({className: 'left-off-canvas-menu'},
-                                R.ul({className: 'off-canvas-list'},
-                                    R.li({ onClick: self.showOverview }, R.a({href: '#'}, 'Overview')),
-                                    R.li({ onClick: self.showContactList }, R.a({href: '#'}, 'Contacts')),
-                                    R.li({ onClick: self.showRecords }, R.a({href: '#'}, 'Records')),
-                                    R.li({ onClick: self.showPayments }, R.a({href: '#'}, 'Payments')),
-                                    R.li({ onClick: self.showSettings }, R.a({href: '#'}, 'Settings'))
-                                )
-                            ),
-                            R.section({className: 'main-section'},
-                                R.div({className: 'row'},
-                                    R.div({className: 'large-12 columns'},
-                                        this.state.widget
+                            R.div({className: 'row'},
+                                R.aside({className: 'left-off-canvas-menu'},
+                                    R.ul({className: 'off-canvas-list'},
+                                        R.li({ onClick: self.showOverview }, R.a({href: '#'}, 'Overview')),
+                                        R.li({ onClick: self.showContactList }, R.a({href: '#'}, 'Contacts')),
+                                        R.li({ onClick: self.showRecords }, R.a({href: '#'}, 'Records')),
+                                        R.li({ onClick: self.showPayments }, R.a({href: '#'}, 'Payments')),
+                                        R.li({ onClick: self.showSettings }, R.a({href: '#'}, 'Settings'))
+                                    )
+                                ),
+                                R.section({className: 'main-section'},
+                                    R.div({className: 'row'},
+                                        R.div({className: 'large-12 columns'},
+                                            this.state.widget
+                                        )
                                     )
                                 )
                             )
+                            //R.a({className:'exit-off-canvas'}, null)   //TODO: Apply the exit off canvas
                         )
                     )
                 )//main-wrapper
