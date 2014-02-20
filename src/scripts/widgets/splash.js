@@ -96,11 +96,9 @@ define(['assert', 'crypto', 'database', 'global', 'json_req', 'react', 'widgets/
                        typeof self.props.settings['federation_server'] !== 'string' ||
                        self.props.settings['federation_server'].toLowerCase() !== self.getServer().toLowerCase()) { // bad approximation
 
-                       Database.deleteAll(function(err, amount) {
+                       Database.destroy(function(err) {
                            console.assert(!err);
-                           if (amount > 0)
-                               console.log('Deleted ', amount, ' of records as they seem to belong to another account');
-
+                           console.log('Starting from fresh database..');
                            self.syncAndReady(password, databaseUrl);
                            return;
                        });
@@ -131,10 +129,9 @@ define(['assert', 'crypto', 'database', 'global', 'json_req', 'react', 'widgets/
 
             this.send('/api/create_user', fields, function(databaseUrl) {
 
-                Database.deleteAll(function(err, amount) {
+                Database.destroy(function(err) {
                     console.assert(!err);
-                    if (amount > 0)
-                        console.log('Deleted ', amount, ' of records as they seem to belong to another account');
+                    console.log('Starting from fresh database');
 
                     var keys = Crypto.generateKeys();
                     var publicKey = Crypto.formatPublicKey(keys.pub);

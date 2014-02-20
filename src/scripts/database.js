@@ -111,10 +111,18 @@ define(['assert', 'pouchdb-nightly'], function(assert, PouchDb) {
             });
         },
 
-        get: db.get.bind(db),
-        post: db.post.bind(db),
-        put: db.put.bind(db),
-        remove: db.remove.bind(db),
+        get: function() {
+            db.get.apply(db, arguments);
+        },
+        post: function() {
+            db.post.apply(db, arguments);
+        },
+        put: function() {
+            db.put.apply(db, arguments);
+        },
+        remove: function() {
+            db.remove.apply(db, arguments);
+        },
 
         addContact: function(name, description, lostdAddress, publicKey, callback) {
             db.post(

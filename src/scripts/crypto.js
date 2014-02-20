@@ -104,7 +104,7 @@ define(['assert', 'sjcl'], function(assert, sjcl) {
         signObject: signObject,
         isValidSignatureObject: isValidSignatureObject,
         passwordHash: function(username, password) {
-            return hash(username + '/' + password).substring(0,12);
+            return hash(username.toLowerCase() + '/' + password).substring(0,12);
         }
     };
 });
