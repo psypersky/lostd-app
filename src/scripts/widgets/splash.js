@@ -196,7 +196,7 @@ define(['assert', 'crypto', 'database', 'global', 'json_req', 'react', 'widgets/
                     'Username': InputUsername({ ref: 'username' }),
                     'Password': React.DOM.input({ ref: 'password', type: 'password', placeholder: 'password', pattern: '.{4,}', required: true, title: 'Password must have at least 4 characters' }),
                     'Confirm Password': React.DOM.input({ ref: 'confirm', type: 'password', placeholder: 'password', pattern: '.{4,}', required: true, title: 'Password must have at least 4 characters' }),
-                    'Email': React.DOM.input({ ref: 'email', type: 'email', placeholder: 'email', required: true })
+                    'Email': React.DOM.input({ ref: 'email', type: 'email', placeholder: 'you@email.com', pattern: '^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$', required: true })
                 };
 
                 submitFn = this.onRegister;
