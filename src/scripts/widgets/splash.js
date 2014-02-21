@@ -51,9 +51,10 @@ define(['assert', 'crypto', 'database', 'global', 'json_req', 'react', 'widgets/
             self.setProgress('Synchronizing offline copy of data, please be patient');
 
             var hashPass = Crypto.hash(password);
-            window.localStorage['password'] = hashPass; // TODO: only if there's an option set to save..
 
-            Database.sync(databaseUrl, function(err) {
+            window.localStorage['password'] = hashPass; // TODO: only if there's an option set to save..
+            Database.setDatabaseUrl(databaseUrl);
+            Database.sync(function(err) {
                 if (err) {
                     console.error('Error during sync: ', err);
 
@@ -68,7 +69,10 @@ define(['assert', 'crypto', 'database', 'global', 'json_req', 'react', 'widgets/
                 Database.get('user:settings', function(err, settings) {
                     console.assert(!err);
                     console.assert(settings['private_key']);
+                    console.assert(settings['database_url']);
 
+                    Database.setDatabaseUrl(settings['database_url']);
+                    Database.replicate();
                     Global.keys = Crypto.decryptKeysFromPrivateKey(hashPass, settings['private_key']);
 
                     // TODO: check if need to update settings [In terms of federation, and database url]

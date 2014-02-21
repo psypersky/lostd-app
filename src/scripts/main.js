@@ -14,12 +14,14 @@ require(['crypto', 'database', 'global', 'react', 'widgets/splash', 'widgets/win
             componentWillMount: function() {
                 var self = this;
                 Database.get('user:settings', function(err, settings) {
-                    if (err)
-                        console.log('Could not find user settings...');
-                    else {
+                    if (!err) {
                         console.log('Found user settings: ', settings);
+                        console.assert(settings['private_key']);
+                        console.assert(settings['database_url']);
 
                         if (window.localStorage && window.localStorage['password']) {
+                            Database.setDatabaseUrl(settings['database_url']);
+                            Database.replicate();
                             Global.keys = Crypto.decryptKeysFromPrivateKey(window.localStorage['password'], settings['private_key']);
                             self.onReady();
                             return;

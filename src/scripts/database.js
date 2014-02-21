@@ -1,16 +1,16 @@
 'use strict';
 
-define(['assert', 'pouchdb-nightly'], function(assert, PouchDb) {
+define(['pouchdb-nightly'], function(PouchDb) {
 
     var db = new PouchDb('lostd');
+    var databaseUrl;
 
-    function continuousReplication(dbUrl) {
+    function continuousReplication() {
+        if (!databaseUrl) return;
 
         var cancel = false;
 
-        if (!dbUrl) return;
-
-        console.log('Replication to ', dbUrl, ' has begun');
+        console.log('Replication to ', databaseUrl, ' has begun');
 
         var importPromise = continuousImport();
         var exportPromise = continuousExport();
@@ -27,22 +27,18 @@ define(['assert', 'pouchdb-nightly'], function(assert, PouchDb) {
 
         function continuousImport() {
             if (cancel) return;
-            console.log('Starting import... from: ', dbUrl);
-            return db.replicate.from(dbUrl, { continuous: true }, function(err) {
+            console.log('Starting import... from: ', databaseUrl);
+            return db.replicate.from(databaseUrl, { continuous: true }, function(err) {
                 if (cancel) return;
-                console.log('Resetting continuous import...', err);
-
                 window.setTimeout(continuousImport, 2000);
             });
         }
 
         function continuousExport() {
             if (cancel) return;
-            console.log('Starting export... to: ', dbUrl);
-            return db.replicate.to(dbUrl, { continuous: true }, function(err) {
+            console.log('Starting export... to: ', databaseUrl);
+            return db.replicate.to(databaseUrl, { continuous: true }, function(err) {
                 if (cancel) return;
-                console.log('Resetting continuous export...', err);
-
                 window.setTimeout(continuousExport, 2000);
             });
         }
@@ -50,33 +46,49 @@ define(['assert', 'pouchdb-nightly'], function(assert, PouchDb) {
 
     var promise = null;
 
+    function cancel() {
+        if (promise) {
+            promise.cancel();
+            promise = null;
+        }
+    }
+
+    function replicate() {
+        cancel();
+        var done = false;
+        promise = db.replicate.sync(databaseUrl, {
+            continuous: true,
+            complete: function(err) {
+            if (done) // HACK: see pouchdb issue 1409
+                callback(err);
+            else
+                done = !done;
+        }});
+    }
+
     return {
-
-        cancel: function() {
-            if (promise) {
-                promise.cancel();
-                promise = null;
-            }
-        },
-
-        replicate: function(dbUrl) {
-            if (promise) promise.cancel();
-            promise = continuousReplication(dbUrl);
-        },
+        cancel: cancel,
+        replicate: replicate,
 
         destroy: function(callback) {
-            if (promise) promise.cancel();
+            cancel();
             PouchDb.destroy('lostd', function(err, response) {
-                console.log('Result of destroy... ', err, response);
                 db = new PouchDb('lostd');
                 callback(err);
             });
         },
 
+        setDatabaseUrl: function(dbUrl) {
+            databaseUrl = dbUrl;
+            if (promise) { // If already replicating
+                replicate(); // cancels and restarts
+            }
+        },
+
         // Calls callback with: err, amount of docs deleted
         deleteAll: function(callback) {
             db.allDocs({include_docs: true }, function (err, response) {
-                assert(response['total_rows'] === response.rows.length);
+                console.assert(response['total_rows'] === response.rows.length);
 
                 var docs = response.rows.map(function (x) {
                     x.doc['_deleted'] = true;
@@ -94,9 +106,20 @@ define(['assert', 'pouchdb-nightly'], function(assert, PouchDb) {
             return db.changes({ since: 'latest', continuous: true, include_docs: true, onChange: onChange });
         },
 
-        sync: function(to, callback) {
+        importSync: function(callback) {
+            cancel();
+            db.replicate.from(databaseUrl, { complete: callback });
+        },
+
+        exportSync: function(callback) {
+            cancel();
+            db.replicate.to(databaseUrl, { complete: callback });
+        },
+
+        sync: function(callback) {
+            cancel();
             var done = false;
-            db.replicate.sync(to, { complete: function(err) {
+            db.replicate.sync(databaseUrl, { complete: function(err) {
                 if (done) // HACK: see pouchdb issue 1409
                     callback(err);
                 else

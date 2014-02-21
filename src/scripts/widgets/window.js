@@ -3,12 +3,14 @@
 define(['react','pouchdb-nightly',
     'database',
 	'widgets/contact_list', 'widgets/contact_adder', 'widgets/contact_detail',
-	'widgets/record_adder', 'widgets/record_list'
+	'widgets/record_adder', 'widgets/record_list',
+    'widgets/logout'
 ],
-    function(React, PouchDB
-        , Database
-        , ContactList, ContactAdder, ContactDetail
-        , RecordAdder, RecordList) {
+    function(React, PouchDB,
+        Database,
+        ContactList, ContactAdder, ContactDetail,
+        RecordAdder, RecordList,
+        Logout) {
 
     var R = React.DOM;
 
@@ -44,25 +46,33 @@ define(['react','pouchdb-nightly',
             });
         },
 
+        showContactAdder: function() {
+            this.setState({ widget: ContactAdder(), topRightButton: this.contactCancelButton() });
+        },
+
         contactAddButton: function() {
-            return this.createButton('fi-plus', ContactAdder, this.contactCancelButton);
+            return this.createButton('fi-plus', this.showContactAdder);
         },
 
         //Return a function to be attached on the button
         contactCancelButton: function() {
-            return this.createButton('fi-x', this.contactListWidget, this.contactAddButton);
+            return this.createButton('fi-x', this.showContactList);
         },
 
         showRecords: function() {
             this.setState({ widget: RecordList(null), topRightButton: this.recordAddButton() });
         },
 
+        showRecordAdder: function() {
+            this.setState({ widget: RecordAdder(null), topRightButton: this.recordCancelButton() });
+        },
+
         recordAddButton: function() {
-            return this.createButton('fi-plus', RecordAdder, this.recordCancelButton);
+            return this.createButton('fi-plus', this.showRecordAdder);
         },
 
         recordCancelButton: function() {
-            return this.createButton('fi-x', RecordList, this.recordAddButton);
+            return this.createButton('fi-x', this.showRecords);
         },
 
         showPayments: function() {
@@ -77,21 +87,24 @@ define(['react','pouchdb-nightly',
             this.setState({widget: widget, topRightButton: btn });
         },
 
+        logoutCancelButton: function() {
+            return this.createButton('fi-x', this.showContactList); // Perhaps, more appropriately should revert state..
+        },
+
+        showLogout: function() {
+            this.setState({widget: Logout(null), topRightButton: this.logoutCancelButton() });
+        },
+
         // Return a button of type 'className' 
         // if clicked set this.widget to onClickWidget and this.topRightButton to onClickButton
-        createButton: function(className, onClickWidget, onClickButton) {
+        createButton: function(className, show) {
             var self = this;
 
-            return R.section({className: 'right-small tab-bar-button',
-                                onClick: function() {
-                                    console.log('Add button clicked');
-                                    self.setState({ widget: onClickWidget(), topRightButton: onClickButton() });
-                                }
-                             },
-                        R.a({ href: '#', className: 'tab-bar-icon' },
-                            React.DOM.i({className: className + ' size-21 menu-icon-style'})
-                        )
-                    );
+            return R.section({
+                className: 'right-small tab-bar-button',
+                onClick: show
+            }, R.a({ href: '#', className: 'tab-bar-icon' }, React.DOM.i({className: className + ' size-21 menu-icon-style'}))
+            );
         },
 
         detailListWidget: function(contact) {
@@ -135,7 +148,8 @@ define(['react','pouchdb-nightly',
                                         R.li({ onClick: self.showContactList }, R.a({href: '#'}, 'Contacts')),
                                         R.li({ onClick: self.showRecords }, R.a({href: '#'}, 'Records')),
                                         R.li({ onClick: self.showPayments }, R.a({href: '#'}, 'Payments')),
-                                        R.li({ onClick: self.showSettings }, R.a({href: '#'}, 'Settings'))
+                                        R.li({ onClick: self.showSettings }, R.a({href: '#'}, 'Settings')),
+                                        R.li({ onClick: self.showLogout }, R.a({href: '#'}, 'Logout'))
                                     )
                                 ),
                                 R.section({className: 'main-section'},
