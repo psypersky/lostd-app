@@ -2,15 +2,16 @@
 
 define(['react','pouchdb-nightly',
     'database',
-	'widgets/contact_list', 'widgets/contact_adder', 'widgets/contact_detail',
-	'widgets/record_adder', 'widgets/record_list',
+    'widgets/contact_list', 'widgets/contact_adder', 'widgets/contact_detail',
+    'widgets/record_adder', 'widgets/record_list', 'widgets/settings',
     'widgets/logout'
 ],
-    function(React, PouchDB,
-        Database,
-        ContactList, ContactAdder, ContactDetail,
-        RecordAdder, RecordList,
-        Logout) {
+    function(React, PouchDB
+        , Database
+        , ContactList, ContactAdder, ContactDetail
+        , RecordAdder, RecordList, Settings
+        , Logout
+    ) {
 
     var R = React.DOM;
 
@@ -81,10 +82,19 @@ define(['react','pouchdb-nightly',
             this.setState({widget: widget, topRightButton: btn });
         },
 
+        changeWindowWidget: function(widget) {
+            var self = this;
+            self.setState({widget: widget});
+        },
+
+        setTopButton: function(button) {
+            var self = this;
+            this.setState({topRightButton: button})
+        },
+
         showSettings: function() {
-            var btn = R.section({className: 'right-small tab-bar-button'}, R.p(null, 'TODO:'));
-            var widget = R.p(null, 'Settings... (TODO:...)');
-            this.setState({widget: widget, topRightButton: btn });
+            var widget = Settings({changeWindowWidget: this.changeWindowWidget, setTopButton: this.setTopButton});
+            this.setState({widget: widget});
         },
 
         logoutCancelButton: function() {
@@ -141,7 +151,6 @@ define(['react','pouchdb-nightly',
                     ),
                     R.div({className: offCanvasWrap },
                         R.div({className: 'inner-wrap'},
-                            R.div({className: 'row'},
                                 R.aside({className: 'left-off-canvas-menu'},
                                     R.ul({className: 'off-canvas-list'},
                                         R.li({ onClick: self.showOverview }, R.a({href: '#'}, 'Overview')),
@@ -153,13 +162,8 @@ define(['react','pouchdb-nightly',
                                     )
                                 ),
                                 R.section({className: 'main-section'},
-                                    R.div({className: 'row'},
-                                        R.div({className: 'large-12 columns'},
-                                            this.state.widget
-                                        )
-                                    )
+                                    this.state.widget
                                 )
-                            )
                             //R.a({className:'exit-off-canvas'}, null)   //TODO: Apply the exit off canvas
                         )
                     )

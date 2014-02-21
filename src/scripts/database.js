@@ -165,21 +165,6 @@ define(['pouchdb-nightly'], function(PouchDb) {
             db.put(contact, callback)
         },
 
-        addRecord: function(contact, record_type, amount, currency, description, callback) {
-            db.post(
-                {
-                    type: 'record',
-                    contact: contact,
-                    record_type: record_type,
-                    amount: amount,
-                    currency: currency,
-                    description: description,
-                    created: Date.now()
-                },
-                callback()
-            )
-        },
-
         // This function deletes the user, and all associated documents
         deleteContact: function(userId, callback) {
             var map = function(doc, emit) {
@@ -201,8 +186,34 @@ define(['pouchdb-nightly'], function(PouchDb) {
 
         },
 
+        addRecord: function(contact, record_type, amount, currency, description, callback) {
+            db.post(
+                {
+                    type: 'record',
+                    contact: contact,
+                    record_type: record_type,
+                    amount: amount,
+                    currency: currency,
+                    description: description,
+                    created: Date.now()
+                },
+                callback
+            )
+        },
+
         query: function(mapFunction, callback) {
             db.query({ map: mapFunction}, callback);
+        },
+
+        addCurrency: function(name, options, callback) {
+            db.post(
+                {
+                    type: 'currency',
+                    name: name,
+                    options: options
+                },
+                callback
+            )
         },
 
         db: db
