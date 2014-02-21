@@ -108,13 +108,9 @@ if (deploy) {
 
     console.log('Starting upload...');
 
-
-	execute('aws s3 cp --region us-west-1 --content-encoding gzip --content-type "text/javascript; charset=utf-8" --cache-control max-age=31536000 build/' + jsHash + '.js s3://get.lostd.com/' + jsHash + '.js', function() {
-		console.log('Synced javascript...');
-		execute('aws s3 cp --region us-west-1 --content-encoding gzip --content-type "text/html; charset=utf-8" build/index.html  s3://get.lostd.com/index.html', function() {
-			console.log('Synced index.html.. ');
-		});
-	});
+    execute('aws s3 sync --region us-west-1 --content-encoding gzip --cache-control max-age=31536000 build/ s3://get.lostd.com/');
+	//execute('aws s3 cp --region us-west-1 --content-encoding gzip --content-type "text/javascript; charset=utf-8" --cache-control max-age=31536000 build/' + jsHash + '.js s3://get.lostd.com/' + jsHash + '.js')
+    //execute('aws s3 cp --region us-west-1 --content-encoding gzip --content-type "text/html; charset=utf-8" build/index.html  s3://get.lostd.com/index.html');
 
     }, 5000); // delay, hopefully finished gzipping by then lol
 }
