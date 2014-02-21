@@ -54,7 +54,7 @@ execute('rm -rf ./build/scripts');
 
 execute('mv ./build/main.js ./build/' + jsHash + '.js');
 
-execute('mv ./build/style.css ./build/' + styleHash + '.js');
+execute('mv ./build/style.css ./build/' + styleHash + '.css');
 
 // simple replace, no escaping bullshit
 function sreplace(str, find, replace) {
