@@ -7,50 +7,54 @@ var fs = require('fs');
 var enableGzip = true;
 var deploy = true;
 
-function gzip(filename, callback) {
+function gzip(filename) {
 	if (enableGzip)
-		execute('gzip --best ' + filename + ' && mv ' + filename + '.gz ' + filename, callback);
-	else
-		callback(null);
+		execute('gzip --best ' + filename + ' && mv ' + filename + '.gz ' + filename);
 }
 
+var todo = [];
 
-function execute(command, callback) {
-    exec(command, function(err, stdout, stderr){
-    	console.log('exec result (' + command + ') ', err, stdout, stderr);
-    	assert(!err);
-    	if (stderr) console.error(stderr);
+function execute(command) {
+    todo.push(command);
 
-    	callback(null, stdout);
-    });
-};
+    if (todo.length === 1)
+        run();
+
+    function run() {
+
+        var command = todo[0];
+        exec(command, function(err, stdout, stderr) {
+            console.log('exec result (' + command + ') ', err, stdout, stderr);
+            assert(!err);
+            if (stderr) console.error(stderr);
+
+            todo.shift();
+            if (todo.length > 0)
+                run();
+        });
+    }
+
+}
 
 function hash(filename) {
 	var shasum = crypto.createHash('sha1');
-
 	shasum.update(fs.readFileSync(filename));
-
 	return shasum.digest('hex');
 }
 
-var jsHash =  hash('./build/main.js').substring(0, 8);
+var jsHash = hash('./build/main.js').substring(0, 8);
+var styleHash = hash('./build/style.css').substring(0,8);
 
 console.log('Hash of js: ', jsHash);
+console.log('Style hash: ', styleHash);
 
 var contents = fs.readFileSync('./build/index.html', { encoding: 'UTF-8' });
-var css = fs.readFileSync('./build/style.css');
 
-execute('rm -rf ./build/scripts', function() {
-	console.log('..removed old scripts');
-});
+execute('rm -rf ./build/scripts');
 
-gzip('./build/main.js', function(err) {
-	assert(!err);
+execute('mv ./build/main.js ./build/' + jsHash + '.js');
 
-	execute('mv ./build/main.js ./build/' + jsHash + '.js', function() {
-		console.log('main.js done..');
-	});
-});
+execute('mv ./build/style.css ./build/' + styleHash + '.js');
 
 // simple replace, no escaping bullshit
 function sreplace(str, find, replace) {
@@ -60,22 +64,57 @@ function sreplace(str, find, replace) {
 }
 
 contents = contents.replace(/\>\s+\</g, '><');
-contents = sreplace(contents, '<link rel="stylesheet" type="text/css" href="style.css" />', '<style type="text/css">' + css + '</style>');
+contents = contents.replace('style.css', styleHash + '.css');
 contents = sreplace(contents, '<script data-main="scripts/main" src="scripts/require.js"></script>', '<script type="text/javascript" src="' + jsHash + '.js"></script>');
 contents = contents.replace(/\s+/g, ' ');
 
 fs.writeFileSync('./build/index.html', contents);
 
-gzip('./build/index.html', function(err) {
-	assert(!err);
-	console.log('Finished index.html...');
-});
+// Gzip everything!
+
+function gzipEverything(dir) {
+    var files = fs.readdirSync(dir);
+    console.log('Files: ', files);
+
+    files.forEach(function (f) {
+        var file = dir + '/' + f;
+
+        var stats = fs.statSync(file);
+
+        if (stats.isFile())
+            gzip(file, function(err) {
+                assert(!err);
+            });
+        else if (stats.isDirectory()) {
+            // Wait a second, before going down a directory..
+            setTimeout(
+                gzipEverything,
+                2000,
+                file
+            );
+        }
+    });
+}
+
+setTimeout(
+    gzipEverything,
+    1000,
+    './build'
+);
+
 
 if (deploy) {
-	execute('aws s3 cp --content-encoding gzip --content-type "text/javascript; charset=utf-8" --cache-control max-age=31536000 build/' + jsHash + '.js s3://app.lostd.com/' + jsHash + '.js', function() {
+    setTimeout(function() {
+
+    console.log('Starting upload...');
+
+
+	execute('aws s3 cp --region us-west-1 --content-encoding gzip --content-type "text/javascript; charset=utf-8" --cache-control max-age=31536000 build/' + jsHash + '.js s3://get.lostd.com/' + jsHash + '.js', function() {
 		console.log('Synced javascript...');
-		execute('aws s3 cp --content-encoding gzip --content-type "text/html; charset=utf-8" build/index.html  s3://app.lostd.com/index.html', function() {
+		execute('aws s3 cp --region us-west-1 --content-encoding gzip --content-type "text/html; charset=utf-8" build/index.html  s3://get.lostd.com/index.html', function() {
 			console.log('Synced index.html.. ');
 		});
 	});
+
+    }, 5000); // delay, hopefully finished gzipping by then lol
 }
